@@ -241,8 +241,8 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             this.applied = false;
         },
 
-        apply: function() {
-            this.classApplier.applyToRange(this.getRange());
+        apply: function(serializedHighlight) {
+            this.classApplier.applyToRange(this.getRange(), null, serializedHighlight);
             this.applied = true;
         },
 
@@ -395,6 +395,8 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                 if (classApplier) {
                     highlightsToKeep.push(new Highlight(doc, charRange, classApplier, converter, null, containerElementId));
                 }
+                var  oldHighlights = this.serialize(null).split("|");
+
                 this.highlights = highlights = highlightsToKeep;
             }
 
@@ -403,11 +405,15 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                 highlightToRemove.unapply();
             });
 
+
+            var serializedHighlights = this.serialize(null).split("|");
+            var highlightStr = array_diff(oldHighlights, serializedHighlights)[0];
+
             // Apply new highlights
             var newHighlights = [];
             forEach(highlights, function(highlight) {
                 if (!highlight.applied) {
-                    highlight.apply();
+                    highlight.apply(highlightStr);
                     newHighlights.push(highlight);
                 }
             });
@@ -591,7 +597,7 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                 }
 
                 highlight = new Highlight(this.doc, characterRange, classApplier, this.converter, parseInt(parts[2]), containerElementId);
-                highlight.apply();
+                highlight.apply(serializedHighlights[i]);
                 highlights.push(highlight);
             }
             this.highlights = highlights;

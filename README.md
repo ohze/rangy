@@ -3,6 +3,8 @@ Rangy
 
 A cross-browser JavaScript range and selection library.
 
+**Note: This fork is used in [FolioReader-Android](https://github.com/ohze/FolioReader-Android)**
+
 The current version is version 1.3.0.
 
 The latest source code and releases are on [GitHub](../../releases).
