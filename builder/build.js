@@ -339,13 +339,10 @@ function createArchiver(fileExtension, archiveCreatorFunc) {
         });
 
         archive.pipe(output);
-        archive.bulk([
-            {
-                expand: true,
-                cwd: buildDir,
-                src: ["**", "!*.tar", "!*.gz", "!*.tgz", "!*.zip"]
-            }
-        ]);
+        archive.glob('**/*', {
+            cwd: buildDir,
+            ignore: ["*.tar", "*.gz", "*.tgz", "*.zip"]
+        });
         archive.finalize();
     }
 }
