@@ -1,6 +1,5 @@
 var fs = require("fs");
 var path = require("path");
-var util = require("util");
 var exec = require("child_process").exec;
 var uglifyJs = require("uglify-js");
 var rimraf = require("rimraf");

@@ -22,3 +22,11 @@ There is an official Rangy module on NPM called [`rangy`](https://www.npmjs.org/
 ## Documentation
 
 Documentation is in [the GitHub wiki](https://github.com/timdown/rangy/wiki). 
+
+## Build
+```bash
+cd builder
+yarn install
+cd ..
+node builder/build.js
+```

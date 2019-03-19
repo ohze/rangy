@@ -1,0 +1,14 @@
+{
+  "name": "builder",
+  "main": "build.js",
+  "license": "MIT",
+  "devDependencies": {
+    "archiver": "^3.0.0",
+    "child_process": "^1.0.2",
+    "fs": "^0.0.1-security",
+    "jshint": "^2.5.0",
+    "path": "^0.12.7",
+    "rimraf": "^2.2.8",
+    "uglify-js": "^3.4.10"
+  }
+}
