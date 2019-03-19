@@ -99,7 +99,6 @@
         var it, n;
         iteratorState = iteratorState || { stop: false };
         for (var node, subRangeIterator; node = rangeIterator.next(); ) {
-            //log.debug("iterateSubtree, partially selected: " + rangeIterator.isPartiallySelectedSubtree(), nodeToString(node));
             if (rangeIterator.isPartiallySelectedSubtree()) {
                 if (func(node) === false) {
                     iteratorState.stop = true;
@@ -255,11 +254,9 @@
                 // Check for partially selected text nodes
                 if (isCharacterDataNode(current) && this.clonePartiallySelectedTextNodes) {
                     if (current === this.ec) {
-                        //log.info("*** CLONING END");
                         (current = current.cloneNode(true)).deleteData(this.eo, current.length - this.eo);
                     }
                     if (this._current === this.sc) {
-                        //log.info("*** CLONING START");
                         (current = current.cloneNode(true)).deleteData(0, this.so);
                     }
                 }
@@ -346,6 +343,7 @@
     var getDocumentOrFragmentContainer = createAncestorFinder( [9, 11] );
     var getReadonlyAncestor = createAncestorFinder(readonlyNodeTypes);
     var getDocTypeNotationEntityAncestor = createAncestorFinder( [6, 10, 12] );
+    var getElementAncestor = createAncestorFinder( [1] );
 
     function assertNoDocTypeNotationEntityAncestor(node, allowSelf) {
         if (getDocTypeNotationEntityAncestor(node, allowSelf)) {
@@ -408,7 +406,7 @@
     var htmlParsingConforms = false;
     try {
         styleEl.innerHTML = "<b>x</b>";
-        htmlParsingConforms = (styleEl.firstChild.nodeType == 3); // Opera incorrectly creates an element node
+        htmlParsingConforms = (styleEl.firstChild.nodeType == 3); // Pre-Blink Opera incorrectly creates an element node
     } catch (e) {
         // IE 6 and 7 throw
     }
@@ -1016,6 +1014,12 @@
                         break;
                 }
 
+                assertNoDocTypeNotationEntityAncestor(sc, true);
+                assertValidOffset(sc, so);
+
+                assertNoDocTypeNotationEntityAncestor(ec, true);
+                assertValidOffset(ec, eo);
+
                 boundaryUpdater(this, sc, so, ec, eo);
             },
 
@@ -1178,6 +1182,12 @@
                 assertNoDocTypeNotationEntityAncestor(node, true);
                 assertValidOffset(node, offset);
                 this.setStartAndEnd(node, offset);
+            },
+
+            parentElement: function() {
+                assertRangeValid(this);
+                var parentNode = this.commonAncestorContainer;
+                return parentNode ? getElementAncestor(this.commonAncestorContainer, true) : null;
             }
         });
 
@@ -1199,17 +1209,11 @@
         range.endContainer = endContainer;
         range.endOffset = endOffset;
         range.document = dom.getDocument(startContainer);
-
         updateCollapsedAndCommonAncestor(range);
     }
 
     function Range(doc) {
-        this.startContainer = doc;
-        this.startOffset = 0;
-        this.endContainer = doc;
-        this.endOffset = 0;
-        this.document = doc;
-        updateCollapsedAndCommonAncestor(this);
+        updateBoundaries(this, doc, 0, doc, 0);
     }
 
     createPrototypeRange(Range, updateBoundaries);
