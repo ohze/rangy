@@ -22,6 +22,9 @@
         "type": "git",
         "url": "https://github.com/timdown/rangy.git"
     },
+    "scripts": {
+        "prepublishOnly": "cd builder && yarn install && cd .. && node builder"
+    },
     "main": "lib/rangy-core.js",
     "directories": {
         "lib": "./lib"
