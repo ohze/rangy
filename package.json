@@ -7,7 +7,12 @@
         "email": "tim@timdown.co.uk",
         "url": "http://timdown.co.uk/"
     },
-    "keywords": ["range", "selection", "caret", "DOM"],
+    "keywords": [
+        "range",
+        "selection",
+        "caret",
+        "DOM"
+    ],
     "homepage": "https://github.com/timdown/rangy",
     "bugs": {
         "url": "https://github.com/timdown/rangy/issues"
@@ -30,5 +35,8 @@
         "lib": "./lib"
     },
     "dependencies": {},
-    "devDependencies": {}
+    "devDependencies": {
+        "rollup": "^1.8.0",
+        "typescript": "^3.4.1"
+    }
 }
