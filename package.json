@@ -28,15 +28,24 @@
         "url": "https://github.com/timdown/rangy.git"
     },
     "scripts": {
-        "prepublishOnly": "cd builder && yarn install && cd .. && node builder"
+        "tsc": "tsc",
+        "rollup": "rollup -c"
     },
-    "main": "lib/rangy-core.js",
+    "main": "lib/rangy-core.cjs.js",
+    "module": "lib/rangy-core.esm.js",
+    "browser": "lib/rangy-core.js",
     "directories": {
         "lib": "./lib"
     },
-    "dependencies": {},
+    "dependencies": {
+        "core-js": "^3.0.0",
+        "log4javascript": "^1.4.15"
+    },
     "devDependencies": {
         "rollup": "^1.8.0",
+        "rollup-plugin-commonjs": "^9.3.4",
+        "rollup-plugin-node-resolve": "^4.0.1",
+        "rollup-plugin-re": "^1.0.7",
         "typescript": "^3.4.1"
     }
 }

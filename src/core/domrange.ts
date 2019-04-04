@@ -1,35 +1,35 @@
+import {Constructor} from "./util";
+import * as dom from './dom';
+import {
+    arrayContains,
+    comparePoints,
+    DomPosition, getClosestAncestorIn,
+    getDocument,
+    getNodeIndex, getNodeLength,
+    getRootContainer,
+    isCharacterDataNode,
+    isOrIsAncestorOf, removeNode,
+    splitDataNode
+} from "./dom";
+//domrange, wrappedrange, wrappedselection are circular depend on each other
+import {createRange, getSelection} from "./internal";
+
+import * as log4javascript from "log4javascript";
+
 // Pure JavaScript implementation of DOM Range
-/* build:replaceWith(api) */rangy/* build:replaceEnd */.createCoreModule("DomRange", ["DomUtil"], function(api, module) {
+// /* build:replaceWith(api) */rangy/* build:replaceEnd */.createCoreModule("DomRange", ["DomUtil"], function(api, module) {
     var log = log4javascript.getLogger("rangy.DomRange");
-    var dom = api.dom;
-    var util = api.util;
-    var DomPosition = dom.DomPosition;
-    var DOMException = api.DOMException;
-
-    var isCharacterDataNode = dom.isCharacterDataNode;
-    var getNodeIndex = dom.getNodeIndex;
-    var isOrIsAncestorOf = dom.isOrIsAncestorOf;
-    var getDocument = dom.getDocument;
-    var comparePoints = dom.comparePoints;
-    var splitDataNode = dom.splitDataNode;
-    var getClosestAncestorIn = dom.getClosestAncestorIn;
-    var getNodeLength = dom.getNodeLength;
-    var arrayContains = dom.arrayContains;
-    var getRootContainer = dom.getRootContainer;
-    var crashyTextNodes = api.features.crashyTextNodes;
-
-    var removeNode = dom.removeNode;
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
     // Utility functions
 
-    function isNonTextPartiallySelected(node, range) {
+    function isNonTextPartiallySelected(node: Node, range) {
         return (node.nodeType != 3) &&
                (isOrIsAncestorOf(node, range.startContainer) || isOrIsAncestorOf(node, range.endContainer));
     }
 
-    function getRangeDocument(range) {
+export function getRangeDocument(range) {
         return range.document || getDocument(range.startContainer);
     }
 
@@ -75,7 +75,7 @@
         return touchingIsIntersecting ? startComparison <= 0 && endComparison >= 0 : startComparison < 0 && endComparison > 0;
     }
 
-    function cloneSubtree(iterator) {
+    function cloneSubtree(iterator: RangeIterator) {
         var partiallySelected;
         for (var node, frag = getRangeDocument(iterator.range).createDocumentFragment(), subIterator; node = iterator.next(); ) {
             partiallySelected = iterator.isPartiallySelectedSubtree();
@@ -95,7 +95,7 @@
         return frag;
     }
 
-    function iterateSubtree(rangeIterator, func, iteratorState) {
+    function iterateSubtree(rangeIterator, func, iteratorState?) {
         var it, n;
         iteratorState = iteratorState || { stop: false };
         for (var node, subRangeIterator; node = rangeIterator.next(); ) {
@@ -161,7 +161,7 @@
         return frag;
     }
 
-    function getNodesInRange(range, nodeTypes, filter) {
+    function getNodesInRange(range, nodeTypes, filter?) {
         var filterNodeTypes = !!(nodeTypes && nodeTypes.length), regex;
         var filterExists = !!filter;
         if (filterNodeTypes) {
@@ -193,7 +193,7 @@
         return nodes;
     }
 
-    function inspect(range) {
+export function inspect(range) {
         var name = (typeof range.getName == "undefined") ? "Range" : range.getName();
         return "[" + name + "(" + dom.inspectNode(range.startContainer) + ":" + range.startOffset + ", " +
                 dom.inspectNode(range.endContainer) + ":" + range.endOffset + ")]";
@@ -202,11 +202,24 @@
     /*----------------------------------------------------------------------------------------------------------------*/
 
     // RangeIterator code partially borrows from IERange by Tim Ryan (http://github.com/timcameronryan/IERange)
+// RangeIterator class is split to RangeIteratorBase & RangeIterator
+// We use RangeIteratorBase in createDomRange.canSurroundContents - which don't need
+// method cloneRange in interface IterableRange,
+// so createDomRange's TBase don't need to extends Constructor<IterableRange>>
+// note IterableRangeBase's method list == const rangeProperties above
+export interface IterableRangeBase extends AbstractRange {
+    readonly commonAncestorContainer: Node;
+}
+interface IterableRange extends IterableRangeBase {
+    cloneRange(): this;
+}
+class RangeIteratorBase<RT extends IterableRangeBase> {
+    protected ec: Node;
+    protected eo: number;
+    protected sc: Node;
+    protected so: number;
 
-    function RangeIterator(range, clonePartiallySelectedTextNodes) {
-        this.range = range;
-        this.clonePartiallySelectedTextNodes = clonePartiallySelectedTextNodes;
-
+    constructor(public range: RT, public clonePartiallySelectedTextNodes) {
         log.info("New RangeIterator ", dom.inspectNode(range.startContainer), range.startOffset, dom.inspectNode(range.endContainer), range.endOffset);
 
         if (!range.collapsed) {
@@ -229,43 +242,53 @@
         }
     }
 
-    RangeIterator.prototype = {
-        _current: null,
-        _next: null,
-        _first: null,
-        _last: null,
-        isSingleCharacterDataNode: false,
+    // TODO the following properties are migrated from RangeIterator.prototype
+    // now, those are in RangeIterator's instance
+    // so we can remove `detach` method
+    protected _current: Node = null;
+    protected _next: Node = null;
+    _first: Node = null;
+    _last: Node = null;
+    isSingleCharacterDataNode = false;
 
-        reset: function() {
-            this._current = null;
-            this._next = this._first;
-        },
+    reset() {
+        this._current = null;
+        this._next = this._first;
+    }
 
-        hasNext: function() {
-            return !!this._next;
-        },
+    hasNext() {
+        return !!this._next;
+    }
 
-        next: function() {
+    detach() {
+        this.range = this._current = this._next = this._first = this._last = this.sc = this.so = this.ec = this.eo = null;
+    }
+}
+
+export class RangeIterator extends RangeIteratorBase<IterableRange> {
+        next() {
             // Move to next node
-            var current = this._current = this._next;
+            let current: Node | CharacterData = this._current = this._next;
             if (current) {
                 this._next = (current !== this._last) ? current.nextSibling : null;
 
                 // Check for partially selected text nodes
                 if (isCharacterDataNode(current) && this.clonePartiallySelectedTextNodes) {
                     if (current === this.ec) {
-                        (current = current.cloneNode(true)).deleteData(this.eo, current.length - this.eo);
+                        current = current.cloneNode(true);
+                        (current as CharacterData).deleteData(this.eo, (current as CharacterData).length - this.eo);
                     }
                     if (this._current === this.sc) {
-                        (current = current.cloneNode(true)).deleteData(0, this.so);
+                        current = current.cloneNode(true);
+                        (current as CharacterData).deleteData(0, this.so);
                     }
                 }
             }
 
             return current;
-        },
+        }
 
-        remove: function() {
+        remove() {
             var current = this._current, start, end;
 
             if (isCharacterDataNode(current) && (current === this.sc || current === this.ec)) {
@@ -281,21 +304,21 @@
                     log.warn("Node to be removed has no parent node. Is this the child of an attribute node in Firefox 2?");
                 }
             }
-        },
+        }
 
         // Checks if the current node is partially selected
-        isPartiallySelectedSubtree: function() {
+        isPartiallySelectedSubtree() {
             var current = this._current;
             return isNonTextPartiallySelected(current, this.range);
-        },
+        }
 
-        getSubtreeIterator: function() {
+        getSubtreeIterator() {
             var subRange;
             if (this.isSingleCharacterDataNode) {
                 subRange = this.range.cloneRange();
                 subRange.collapse(false);
             } else {
-                subRange = new Range(getRangeDocument(this.range));
+                subRange = new DomRange(getRangeDocument(this.range));
                 var current = this._current;
                 var startContainer = current, startOffset = 0, endContainer = current, endOffset = getNodeLength(current);
 
@@ -311,12 +334,8 @@
                 updateBoundaries(subRange, startContainer, startOffset, endContainer, endOffset);
             }
             return new RangeIterator(subRange, this.clonePartiallySelectedTextNodes);
-        },
-
-        detach: function() {
-            this.range = this._current = this._next = this._first = this._last = this.sc = this.so = this.ec = this.eo = null;
         }
-    };
+    } // RangeIterator
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
@@ -387,7 +406,6 @@
 
     function isRangeValid(range) {
         return (!!range.startContainer && !!range.endContainer &&
-                !(crashyTextNodes && (dom.isBrokenNode(range.startContainer) || dom.isBrokenNode(range.endContainer))) &&
                 getRootContainer(range.startContainer) == getRootContainer(range.endContainer) &&
                 isValidOffset(range.startContainer, range.startOffset) &&
                 isValidOffset(range.endContainer, range.endOffset));
@@ -401,25 +419,11 @@
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    // Test the browser's innerHTML support to decide how to implement createContextualFragment
-    var styleEl = document.createElement("style");
-    var htmlParsingConforms = false;
-    try {
-        styleEl.innerHTML = "<b>x</b>";
-        htmlParsingConforms = (styleEl.firstChild.nodeType == 3); // Pre-Blink Opera incorrectly creates an element node
-    } catch (e) {
-        // IE 6 and 7 throw
-    }
-
-    api.features.htmlParsingConforms = htmlParsingConforms;
-
-    var createContextualFragment = htmlParsingConforms ?
-
         // Implementation as per HTML parsing spec, trusting in the browser's implementation of innerHTML. See
         // discussion and base code for this implementation at issue 67.
         // Spec: http://html5.org/specs/dom-parsing.html#extensions-to-the-range-interface
         // Thanks to Aleks Williams.
-        function(fragmentStr) {
+    function createContextualFragment(fragmentStr) {
             // "Let node the context object's start's node."
             var node = this.startContainer;
             var doc = getDocument(node);
@@ -472,19 +476,9 @@
             // "Append all new children to fragment."
             // "Return fragment."
             return dom.fragmentFromNodeChildren(el);
-        } :
+        }
 
-        // In this case, innerHTML cannot be trusted, so fall back to a simpler, non-conformant implementation that
-        // previous versions of Rangy used (with the exception of using a body element rather than a div)
-        function(fragmentStr) {
-            var doc = getRangeDocument(this);
-            var el = doc.createElement("body");
-            el.innerHTML = fragmentStr;
-
-            return dom.fragmentFromNodeChildren(el);
-        };
-
-    function splitRangeBoundaries(range, positionsToPreserve) {
+    function splitRangeBoundaries(range, positionsToPreserve?) {
         assertRangeValid(range);
 
         log.debug("splitBoundaries called " + range.inspect(), positionsToPreserve);
@@ -512,7 +506,7 @@
         log.debug("splitBoundaries done");
     }
 
-    function rangeToHtml(range) {
+export function rangeToHtml(range) {
         assertRangeValid(range);
         var container = range.commonAncestorContainer.parentNode.cloneNode(false);
         container.appendChild( range.cloneContents() );
@@ -521,14 +515,26 @@
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    var rangeProperties = ["startContainer", "startOffset", "endContainer", "endOffset", "collapsed",
+export const rangeProperties = ["startContainer", "startOffset", "endContainer", "endOffset", "collapsed",
         "commonAncestorContainer"];
 
     var s2s = 0, s2e = 1, e2e = 2, e2s = 3;
     var n_b = 0, n_a = 1, n_b_a = 2, n_i = 3;
 
-    util.extend(api.rangePrototype, {
-        compareBoundaryPoints: function(how, range) {
+export interface RangeBaseMixinT extends IterableRangeBase {
+    collapse(toStart?: boolean): void;
+    extractContents(): DocumentFragment;
+    selectNode(node: Node): void;
+    setStartBefore(node: Node): void;
+    setStart(node: Node, offset: number): void;
+    setStartAfter(node: Node): void;
+    setEndBefore(node: Node): void;
+    setEnd(node: Node, offset: number): void;
+}
+// util.extend(api.rangePrototype, {
+function createDomRangeBase<TBase extends Constructor<RangeBaseMixinT>>(Base: TBase) {
+    return class extends Base implements IterableRange /*RangeBase, IterableRange*/ /* TODO implements Range */ {
+        compareBoundaryPoints(how, range) {
             assertRangeValid(this);
             assertSameDocumentOrFragment(this.startContainer, range.startContainer);
 
@@ -540,9 +546,9 @@
             nodeB = range[prefixB + "Container"];
             offsetB = range[prefixB + "Offset"];
             return comparePoints(nodeA, offsetA, nodeB, offsetB);
-        },
+        }
 
-        insertNode: function(node) {
+        insertNode(node) {
             assertRangeValid(this);
             assertValidNodeType(node, insertableNodeTypes);
             assertNodeNotReadOnly(this.startContainer);
@@ -557,9 +563,9 @@
 
             var firstNodeInserted = insertNodeAtPosition(node, this.startContainer, this.startOffset);
             this.setStartBefore(firstNodeInserted);
-        },
+        }
 
-        cloneContents: function() {
+        cloneContents() {
             assertRangeValid(this);
 
             var clone, frag;
@@ -579,9 +585,9 @@
                 }
                 return clone;
             }
-        },
+        }
 
-        canSurroundContents: function() {
+        canSurroundContents() {
             assertRangeValid(this);
             assertNodeNotReadOnly(this.startContainer);
             assertNodeNotReadOnly(this.endContainer);
@@ -593,9 +599,9 @@
                     (iterator._last && isNonTextPartiallySelected(iterator._last, this)));
             iterator.detach();
             return !boundariesInvalid;
-        },
+        }
 
-        surroundContents: function(node) {
+        surroundContents(node) {
             assertValidNodeType(node, surroundNodeTypes);
 
             if (!this.canSurroundContents()) {
@@ -617,20 +623,20 @@
             node.appendChild(content);
 
             this.selectNode(node);
-        },
+        }
 
-        cloneRange: function() {
+        cloneRange() {
             assertRangeValid(this);
-            var range = new Range(getRangeDocument(this));
+            var range = new DomRange(getRangeDocument(this));
             var i = rangeProperties.length, prop;
             while (i--) {
                 prop = rangeProperties[i];
                 range[prop] = this[prop];
             }
             return range;
-        },
+        }
 
-        toString: function() {
+        toString() {
             assertRangeValid(this);
             var sc = this.startContainer;
             if (sc === this.endContainer && isCharacterDataNode(sc)) {
@@ -647,12 +653,12 @@
                 iterator.detach();
                 return textParts.join("");
             }
-        },
+        }
 
         // The methods below are all non-standard. The following batch were introduced by Mozilla but have since
         // been removed from Mozilla.
 
-        compareNode: function(node) {
+        compareNode(node) {
             assertRangeValid(this);
 
             var parent = node.parentNode;
@@ -670,9 +676,9 @@
             } else {
                 return (endComparison > 0) ? n_a : n_i;
             }
-        },
+        }
 
-        comparePoint: function(node, offset) {
+        comparePoint(node, offset) {
             assertRangeValid(this);
             assertNode(node, "HIERARCHY_REQUEST_ERR");
             assertSameDocumentOrFragment(node, this.startContainer);
@@ -683,17 +689,17 @@
                 return 1;
             }
             return 0;
-        },
+        }
 
-        createContextualFragment: createContextualFragment,
+        createContextualFragment = createContextualFragment;
 
-        toHtml: function() {
+        toHtml() {
             return rangeToHtml(this);
-        },
+        }
 
         // touchingIsIntersecting determines whether this method considers a node that borders a range intersects
         // with it (as in WebKit) or not (as in Gecko pre-1.9, and the default)
-        intersectsNode: function(node, touchingIsIntersecting) {
+        intersectsNode(node, touchingIsIntersecting?): boolean {
             assertRangeValid(this);
             if (getRootContainer(node) != getRangeRoot(this)) {
                 return false;
@@ -708,30 +714,30 @@
                 endComparison = comparePoints(parent, offset + 1, this.startContainer, this.startOffset);
 
             return touchingIsIntersecting ? startComparison <= 0 && endComparison >= 0 : startComparison < 0 && endComparison > 0;
-        },
+        }
 
-        isPointInRange: function(node, offset) {
+        isPointInRange(node, offset) {
             assertRangeValid(this);
             assertNode(node, "HIERARCHY_REQUEST_ERR");
             assertSameDocumentOrFragment(node, this.startContainer);
 
             return (comparePoints(node, offset, this.startContainer, this.startOffset) >= 0) &&
                    (comparePoints(node, offset, this.endContainer, this.endOffset) <= 0);
-        },
+        }
 
         // The methods below are non-standard and invented by me.
 
         // Sharing a boundary start-to-end or end-to-start does not count as intersection.
-        intersectsRange: function(range) {
+        intersectsRange(range) {
             return rangesIntersect(this, range, false);
-        },
+        }
 
         // Sharing a boundary start-to-end or end-to-start does count as intersection.
-        intersectsOrTouchesRange: function(range) {
+        intersectsOrTouchesRange(range) {
             return rangesIntersect(this, range, true);
-        },
+        }
 
-        intersection: function(range) {
+        intersection(range) {
             if (this.intersectsRange(range)) {
                 var startComparison = comparePoints(this.startContainer, this.startOffset, range.startContainer, range.startOffset),
                     endComparison = comparePoints(this.endContainer, this.endOffset, range.endContainer, range.endOffset);
@@ -747,9 +753,9 @@
                 return intersectionRange;
             }
             return null;
-        },
+        }
 
-        union: function(range) {
+        union(range) {
             if (this.intersectsOrTouchesRange(range)) {
                 var unionRange = this.cloneRange();
                 if (comparePoints(range.startContainer, range.startOffset, this.startContainer, this.startOffset) == -1) {
@@ -762,26 +768,26 @@
             } else {
                 throw new DOMException("Ranges do not intersect");
             }
-        },
+        }
 
-        containsNode: function(node, allowPartial) {
+        containsNode(node, allowPartial) {
             if (allowPartial) {
                 return this.intersectsNode(node, false);
             } else {
                 return this.compareNode(node) == n_i;
             }
-        },
+        }
 
-        containsNodeContents: function(node) {
+        containsNodeContents(node) {
             return this.comparePoint(node, 0) >= 0 && this.comparePoint(node, getNodeLength(node)) <= 0;
-        },
+        }
 
-        containsRange: function(range) {
+        containsRange(range) {
             var intersection = this.intersection(range);
             return intersection !== null && range.equals(intersection);
-        },
+        }
 
-        containsNodeText: function(node) {
+        containsNodeText(node) {
             var nodeRange = this.cloneRange();
             nodeRange.selectNode(node);
             var textNodes = nodeRange.getNodes([3]);
@@ -793,30 +799,30 @@
             } else {
                 return this.containsNodeContents(node);
             }
-        },
+        }
 
-        getNodes: function(nodeTypes, filter) {
+        getNodes(nodeTypes, filter?) {
             assertRangeValid(this);
             return getNodesInRange(this, nodeTypes, filter);
-        },
+        }
 
-        getDocument: function() {
+        getDocument() {
             return getRangeDocument(this);
-        },
+        }
 
-        collapseBefore: function(node) {
+        collapseBefore(node) {
             this.setEndBefore(node);
             this.collapse(false);
-        },
+        }
 
-        collapseAfter: function(node) {
+        collapseAfter(node) {
             this.setStartAfter(node);
             this.collapse(true);
-        },
+        }
 
-        getBookmark: function(containerNode) {
+        getBookmark(containerNode) {
             var doc = getRangeDocument(this);
-            var preSelectionRange = api.createRange(doc);
+            var preSelectionRange = createRange(doc);
             containerNode = containerNode || dom.getBody(doc);
             preSelectionRange.selectNodeContents(containerNode);
             var range = this.intersection(preSelectionRange);
@@ -832,9 +838,9 @@
                 end: end,
                 containerNode: containerNode
             };
-        },
+        }
 
-        moveToBookmark: function(bookmark) {
+        moveToBookmark(bookmark) {
             var containerNode = bookmark.containerNode;
             var charIndex = 0;
             this.setStart(containerNode, 0);
@@ -862,28 +868,34 @@
                     }
                 }
             }
-        },
+        }
 
-        getName: function() {
+        getName() {
             return "DomRange";
-        },
+        }
 
-        equals: function(range) {
-            return Range.rangesEqual(this, range);
-        },
+        equals(range) {
+            return rangesEqual(this, range);
+        }
 
-        isValid: function() {
+        isValid() {
             return isRangeValid(this);
-        },
+        }
 
-        inspect: function() {
+        inspect() {
             return inspect(this);
-        },
+        }
 
-        detach: function() {
+        detach() {
             // In DOM4, detach() is now a no-op.
         }
-    });
+
+        // in rangy1, this method is implement in wrappedselection.js
+        select(direction?) {
+            getSelection( this.getDocument() ).setSingleRange(this, direction);
+        }
+    }
+} // createDomRangeBase
 
     function copyComparisonConstantsToObject(obj) {
         obj.START_TO_START = s2s;
@@ -897,7 +909,7 @@
         obj.NODE_INSIDE = n_i;
     }
 
-    function copyComparisonConstants(constructor) {
+export function copyComparisonConstants(constructor) {
         copyComparisonConstantsToObject(constructor);
         copyComparisonConstantsToObject(constructor.prototype);
     }
@@ -935,8 +947,9 @@
         };
     }
 
-    function createPrototypeRange(constructor, boundaryUpdater) {
-        function createBeforeAfterNodeSetter(isBefore, isStart) {
+// https://mariusschulz.com/blog/typescript-2-2-mixin-classes
+function createDomRange<TBase extends Constructor<IterableRangeBase>>(Base: TBase, boundaryUpdater) {
+        function createBeforeAfterNodeSetter(isBefore, isStart): (node: Node) => void {
             return function(node) {
                 assertValidNodeType(node, beforeAfterNodeTypes);
                 assertValidNodeType(getRootContainer(node), rootContainerNodeTypes);
@@ -971,26 +984,34 @@
                 boundaryUpdater(range, sc, so, node, offset);
             }
         }
-
+/*
         // Set up inheritance
         var F = function() {};
         F.prototype = api.rangePrototype;
-        constructor.prototype = new F();
+        Base.prototype = new F();
 
-        util.extend(constructor.prototype, {
-            setStart: function(node, offset) {
+        util.extend(Base.prototype, {
+           ...
+        });
+*/
+        const cls = class extends Base implements RangeBaseMixinT {
+            // START_TO_START = s2s;
+            // static START_TO_START = s2s;
+            // ...
+
+            setStart(node, offset) {
                 assertNoDocTypeNotationEntityAncestor(node, true);
                 assertValidOffset(node, offset);
 
                 setRangeStart(this, node, offset);
-            },
+            }
 
-            setEnd: function(node, offset) {
+            setEnd(node, offset) {
                 assertNoDocTypeNotationEntityAncestor(node, true);
                 assertValidOffset(node, offset);
 
                 setRangeEnd(this, node, offset);
-            },
+            }
 
             /**
              * Convenience method to set a range's start and end boundaries. Overloaded as follows:
@@ -1000,8 +1021,7 @@
              * - Four parameters (startNode, startOffset, endNode, endOffset) creates a range starting at startOffset in
              *   startNode and ending at endOffset in endNode
              */
-            setStartAndEnd: function() {
-                var args = arguments;
+            setStartAndEnd(...args) {
                 var sc = args[0], so = args[1], ec = sc, eo = so;
 
                 switch (args.length) {
@@ -1021,67 +1041,68 @@
                 assertValidOffset(ec, eo);
 
                 boundaryUpdater(this, sc, so, ec, eo);
-            },
+            }
 
-            setBoundary: function(node, offset, isStart) {
+            setBoundary(node, offset, isStart) {
                 this["set" + (isStart ? "Start" : "End")](node, offset);
-            },
+            }
 
-            setStartBefore: createBeforeAfterNodeSetter(true, true),
-            setStartAfter: createBeforeAfterNodeSetter(false, true),
-            setEndBefore: createBeforeAfterNodeSetter(true, false),
-            setEndAfter: createBeforeAfterNodeSetter(false, false),
+            setStartBefore = createBeforeAfterNodeSetter(true, true);
+            setStartAfter = createBeforeAfterNodeSetter(false, true);
+            setEndBefore = createBeforeAfterNodeSetter(true, false);
+            setEndAfter = createBeforeAfterNodeSetter(false, false);
 
-            collapse: function(isStart) {
+            collapse(isStart) {
                 assertRangeValid(this);
                 if (isStart) {
                     boundaryUpdater(this, this.startContainer, this.startOffset, this.startContainer, this.startOffset);
                 } else {
                     boundaryUpdater(this, this.endContainer, this.endOffset, this.endContainer, this.endOffset);
                 }
-            },
+            }
 
-            selectNodeContents: function(node) {
+            selectNodeContents(node) {
                 assertNoDocTypeNotationEntityAncestor(node, true);
 
                 boundaryUpdater(this, node, 0, node, getNodeLength(node));
-            },
+            }
 
-            selectNode: function(node) {
+            selectNode(node) {
                 assertNoDocTypeNotationEntityAncestor(node, false);
                 assertValidNodeType(node, beforeAfterNodeTypes);
 
                 var start = getBoundaryBeforeNode(node), end = getBoundaryAfterNode(node);
                 boundaryUpdater(this, start.node, start.offset, end.node, end.offset);
-            },
+            }
 
-            extractContents: createRangeContentRemover(extractSubtree, boundaryUpdater),
+            extractContents = createRangeContentRemover(extractSubtree, boundaryUpdater);
 
-            deleteContents: createRangeContentRemover(deleteSubtree, boundaryUpdater),
+            deleteContents = createRangeContentRemover(deleteSubtree, boundaryUpdater);
 
-            canSurroundContents: function() {
+            canSurroundContents() {
                 assertRangeValid(this);
                 assertNodeNotReadOnly(this.startContainer);
                 assertNodeNotReadOnly(this.endContainer);
 
                 // Check if the contents can be surrounded. Specifically, this means whether the range partially selects
                 // no non-text nodes.
-                var iterator = new RangeIterator(this, true);
+                // see https://developer.mozilla.org/en-US/docs/Web/API/Range/surroundContents
+                var iterator = new RangeIteratorBase(this, true);
                 var boundariesInvalid = (iterator._first && isNonTextPartiallySelected(iterator._first, this) ||
                         (iterator._last && isNonTextPartiallySelected(iterator._last, this)));
                 iterator.detach();
                 return !boundariesInvalid;
-            },
+            }
 
-            splitBoundaries: function() {
+            splitBoundaries() {
                 splitRangeBoundaries(this);
-            },
+            }
 
-            splitBoundariesPreservingPositions: function(positionsToPreserve) {
+            splitBoundariesPreservingPositions(positionsToPreserve) {
                 splitRangeBoundaries(this, positionsToPreserve);
-            },
+            }
 
-            normalizeBoundaries: function() {
+            normalizeBoundaries() {
                 assertRangeValid(this);
 
                 var sc = this.startContainer, so = this.startOffset, ec = this.endContainer, eo = this.endOffset;
@@ -1176,34 +1197,35 @@
                 }
 
                 boundaryUpdater(this, sc, so, ec, eo);
-            },
+            }
 
-            collapseToPoint: function(node, offset) {
+            collapseToPoint(node, offset) {
                 assertNoDocTypeNotationEntityAncestor(node, true);
                 assertValidOffset(node, offset);
                 this.setStartAndEnd(node, offset);
-            },
+            }
 
-            parentElement: function() {
+            parentElement() {
                 assertRangeValid(this);
                 var parentNode = this.commonAncestorContainer;
                 return parentNode ? getElementAncestor(this.commonAncestorContainer, true) : null;
             }
-        });
+        };
 
-        copyComparisonConstants(constructor);
+        copyComparisonConstants(cls);
+        return cls;
     }
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
     // Updates commonAncestorContainer and collapsed after boundary change
-    function updateCollapsedAndCommonAncestor(range) {
+    function updateCollapsedAndCommonAncestor(range: RangeBase) {
         range.collapsed = (range.startContainer === range.endContainer && range.startOffset === range.endOffset);
         range.commonAncestorContainer = range.collapsed ?
             range.startContainer : dom.getCommonAncestor(range.startContainer, range.endContainer);
     }
 
-    function updateBoundaries(range, startContainer, startOffset, endContainer, endOffset) {
+    function updateBoundaries(range: RangeBase, startContainer, startOffset, endContainer, endOffset) {
         range.startContainer = startContainer;
         range.startOffset = startOffset;
         range.endContainer = endContainer;
@@ -1212,27 +1234,53 @@
         updateCollapsedAndCommonAncestor(range);
     }
 
-    function Range(doc) {
-        updateBoundaries(this, doc, 0, doc, 0);
+    class RangeBase implements IterableRangeBase {
+        commonAncestorContainer: Node;
+        collapsed: boolean;
+        endContainer: Node;
+        endOffset: number;
+        startContainer: Node;
+        startOffset: number;
+
+        document?: Document;
+
+        constructor(doc) {
+            updateBoundaries(this, doc, 0, doc, 0);
+        }
     }
 
-    createPrototypeRange(Range, updateBoundaries);
+export function createPrototypeRange<T extends IterableRangeBase, TBase extends Constructor<T>>(Base: TBase, boundaryUpdater)
+// export function createPrototypeRange<TBase extends Constructor<IterableRangeBase>>(Base: TBase, boundaryUpdater)
+// export function createPrototypeRange<T extends IterableRangeBase>(Base: Constructor<T>, boundaryUpdater)
+    /*: Constructor<IterableRangeBase & RangeBaseMixinT>*/ {
+    // _Range is a not completed class because IterableRangeBase is not extends RangeBaseMixinT
+    // the missing members will be provided at createDomRange
+    // so result will be a completed class
+    const _Range = createDomRangeBase(Base as any as TBase & Constructor<RangeBaseMixinT>);
+    // const R = createDomRange(_Range, boundaryUpdater);
+    // return class extends R{}
+    // return R as (typeof R) & T;
+    return createDomRange(_Range, boundaryUpdater);
+}
+export const DomRange = createPrototypeRange(RangeBase, updateBoundaries);
+export type DomRange = InstanceType<typeof DomRange>;
+// export class DomRange extends createPrototypeRange(RangeBase, updateBoundaries){};
 
-    util.extend(Range, {
+    // @deprecated pls directly import & use the exported member of this module
+    Object.assign(DomRange, {
         rangeProperties: rangeProperties,
         RangeIterator: RangeIterator,
         copyComparisonConstants: copyComparisonConstants,
-        createPrototypeRange: createPrototypeRange,
+        createPrototypeRange: createDomRange,
         inspect: inspect,
         toHtml: rangeToHtml,
         getRangeDocument: getRangeDocument,
-        rangesEqual: function(r1, r2) {
+        rangesEqual: rangesEqual,
+    });
+
+export function rangesEqual(r1, r2) {
             return r1.startContainer === r2.startContainer &&
                 r1.startOffset === r2.startOffset &&
                 r1.endContainer === r2.endContainer &&
                 r1.endOffset === r2.endOffset;
-        }
-    });
-
-    api.DomRange = Range;
-});
+    }

@@ -1,3 +1,5 @@
 .idea
 dist
 node_modules
+/tscOut/
+/.rpt2_cache/

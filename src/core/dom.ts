@@ -1,9 +1,16 @@
+import {Module} from "./module";
+import * as util from "./util";
+import {getBody} from './util';
+import * as log4javascript from "log4javascript";
+
+export {getBody};
+
+const module = new Module("DomUtil", []);
+
 // DOM utility methods used by Rangy
-/* build:replaceWith(api) */rangy/* build:replaceEnd */.createCoreModule("DomUtil", [], function(api, module) {
+// /* build:replaceWith(api) */rangy/* build:replaceEnd */.createCoreModule("DomUtil", [], function(api, module) {
     var log = log4javascript.getLogger("rangy.dom");
     var UNDEF = "undefined";
-    var util = api.util;
-    var getBody = util.getBody;
 
     // Perform feature tests
     if (!util.areHostMethods(document, ["createDocumentFragment", "createElement", "createTextNode"])) {
@@ -14,56 +21,28 @@
         module.fail("document missing getElementsByTagName method");
     }
 
-    var el = document.createElement("div");
-    if (!util.areHostMethods(el, ["insertBefore", "appendChild", "cloneNode"] ||
-            !util.areHostObjects(el, ["previousSibling", "nextSibling", "childNodes", "parentNode"]))) {
-        module.fail("Incomplete Element implementation");
-    }
-
-    // innerHTML is required for Range's createContextualFragment method
-    if (!util.isHostProperty(el, "innerHTML")) {
-        module.fail("Element is missing innerHTML property");
-    }
-
-    var textNode = document.createTextNode("test");
-    if (!util.areHostMethods(textNode, ["splitText", "deleteData", "insertData", "appendData", "cloneNode"] ||
-            !util.areHostObjects(el, ["previousSibling", "nextSibling", "childNodes", "parentNode"]) ||
-            !util.areHostProperties(textNode, ["data"]))) {
-        module.fail("Incomplete Text Node implementation");
-    }
-
     /*----------------------------------------------------------------------------------------------------------------*/
 
+    // rangy2 dont test this
     // Removed use of indexOf because of a bizarre bug in Opera that is thrown in one of the Acid3 tests. I haven't been
     // able to replicate it outside of the test. The bug is that indexOf returns -1 when called on an Array that
     // contains just the document as a single element and the value searched for is the document.
-    var arrayContains = /*Array.prototype.indexOf ?
-        function(arr, val) {
-            return arr.indexOf(val) > -1;
-        }:*/
-
-        function(arr, val) {
-            var i = arr.length;
-            while (i--) {
-                if (arr[i] === val) {
-                    return true;
-                }
-            }
-            return false;
-        };
+export function arrayContains(arr, val) {
+    return arr.indexOf(val) > -1;
+}
 
     // Opera 11 puts HTML elements in the null namespace, it seems, and IE 7 has undefined namespaceURI
-    function isHtmlNamespace(node) {
+export function isHtmlNamespace(node) {
         var ns;
         return typeof node.namespaceURI == UNDEF || ((ns = node.namespaceURI) === null || ns == "http://www.w3.org/1999/xhtml");
     }
 
-    function parentElement(node) {
+export function parentElement(node) {
         var parent = node.parentNode;
         return (parent.nodeType == 1) ? parent : null;
     }
 
-    function getNodeIndex(node) {
+export function getNodeIndex(node) {
         var i = 0;
         while( (node = node.previousSibling) ) {
             ++i;
@@ -71,7 +50,7 @@
         return i;
     }
 
-    function getNodeLength(node) {
+export function getNodeLength(node) {
         switch (node.nodeType) {
             case 7:
             case 10:
@@ -84,7 +63,7 @@
         }
     }
 
-    function getCommonAncestor(node1, node2) {
+export function getCommonAncestor(node1, node2) {
         var ancestors = [], n;
         for (n = node1; n; n = n.parentNode) {
             ancestors.push(n);
@@ -99,7 +78,7 @@
         return null;
     }
 
-    function isAncestorOf(ancestor, descendant, selfIsAncestor) {
+export function isAncestorOf(ancestor, descendant, selfIsAncestor?) {
         var n = selfIsAncestor ? descendant : descendant.parentNode;
         while (n) {
             if (n === ancestor) {
@@ -111,11 +90,11 @@
         return false;
     }
 
-    function isOrIsAncestorOf(ancestor, descendant) {
+export function isOrIsAncestorOf(ancestor, descendant) {
         return isAncestorOf(ancestor, descendant, true);
     }
 
-    function getClosestAncestorIn(node, ancestor, selfIsAncestor) {
+export function getClosestAncestorIn(node, ancestor, selfIsAncestor) {
         var p, n = selfIsAncestor ? node : node.parentNode;
         while (n) {
             p = n.parentNode;
@@ -127,12 +106,13 @@
         return null;
     }
 
-    function isCharacterDataNode(node) {
+// https://basarat.gitbooks.io/typescript/docs/types/typeGuard.html#user-defined-type-guards
+export function isCharacterDataNode(node): node is CharacterData {
         var t = node.nodeType;
         return t == 3 || t == 4 || t == 8 ; // Text, CDataSection or Comment
     }
 
-    function isTextOrCommentNode(node) {
+export function isTextOrCommentNode(node) {
         if (!node) {
             return false;
         }
@@ -140,7 +120,7 @@
         return t == 3 || t == 8 ; // Text or Comment
     }
 
-    function insertAfter(node, precedingNode) {
+export function insertAfter(node, precedingNode) {
         var nextNode = precedingNode.nextSibling, parent = precedingNode.parentNode;
         if (nextNode) {
             parent.insertBefore(node, nextNode);
@@ -151,7 +131,7 @@
     }
 
     // Note that we cannot use splitText() because it is bugridden in IE 9.
-    function splitDataNode(node, index, positionsToPreserve) {
+export function splitDataNode(node, index, positionsToPreserve?) {
         log.debug("splitDataNode called at index " + index + " in node " + inspectNode(node));
         var newNode = node.cloneNode(false);
         newNode.deleteData(0, index);
@@ -175,7 +155,7 @@
         return newNode;
     }
 
-    function getDocument(node) {
+export function getDocument(node) {
         if (node.nodeType == 9) {
             return node;
         } else if (typeof node.ownerDocument != UNDEF) {
@@ -189,7 +169,7 @@
         }
     }
 
-    function getWindow(node) {
+export function getWindow(node) {
         var doc = getDocument(node);
         if (typeof doc.defaultView != UNDEF) {
             return doc.defaultView;
@@ -200,7 +180,7 @@
         }
     }
 
-    function getIframeDocument(iframeEl) {
+export function getIframeDocument(iframeEl) {
         if (typeof iframeEl.contentDocument != UNDEF) {
             return iframeEl.contentDocument;
         } else if (typeof iframeEl.contentWindow != UNDEF) {
@@ -210,7 +190,7 @@
         }
     }
 
-    function getIframeWindow(iframeEl) {
+export function getIframeWindow(iframeEl) {
         if (typeof iframeEl.contentWindow != UNDEF) {
             return iframeEl.contentWindow;
         } else if (typeof iframeEl.contentDocument != UNDEF) {
@@ -221,11 +201,11 @@
     }
 
     // This looks bad. Is it worth it?
-    function isWindow(obj) {
+export function isWindow(obj) {
         return obj && util.isHostMethod(obj, "setTimeout") && util.isHostObject(obj, "document");
     }
 
-    function getContentDocument(obj, module, methodName) {
+export function getContentDocument(obj, module: Module, methodName) {
         var doc;
 
         if (!obj) {
@@ -250,7 +230,7 @@
         return doc;
     }
 
-    function getRootContainer(node) {
+export function getRootContainer(node) {
         var parent;
         while ( (parent = node.parentNode) ) {
             node = parent;
@@ -258,7 +238,7 @@
         return node;
     }
 
-    function comparePoints(nodeA, offsetA, nodeB, offsetB) {
+export function comparePoints(nodeA, offsetA, nodeB, offsetB) {
         // See http://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html#Level-2-Range-Comparing
         var nodeC, root, childA, childB, n;
         if (nodeA == nodeB) {
@@ -302,39 +282,9 @@
         }
     }
 
-    /*----------------------------------------------------------------------------------------------------------------*/
-
-    // Test for IE's crash (IE 6/7) or exception (IE >= 8) when a reference to garbage-collected text node is queried
-    var crashyTextNodes = false;
-
-    function isBrokenNode(node) {
-        var n;
-        try {
-            n = node.parentNode;
-            return false;
-        } catch (e) {
-            return true;
-        }
-    }
-
-    (function() {
-        var el = document.createElement("b");
-        el.innerHTML = "1";
-        var textNode = el.firstChild;
-        el.innerHTML = "<br />";
-        crashyTextNodes = isBrokenNode(textNode);
-
-        api.features.crashyTextNodes = crashyTextNodes;
-    })();
-
-    /*----------------------------------------------------------------------------------------------------------------*/
-
-    function inspectNode(node) {
+export function inspectNode(node) {
         if (!node) {
             return "[No node]";
-        }
-        if (crashyTextNodes && isBrokenNode(node)) {
-            return "[Broken node]";
         }
         if (isCharacterDataNode(node)) {
             return '"' + node.data + '"';
@@ -346,7 +296,7 @@
         return node.nodeName;
     }
 
-    function fragmentFromNodeChildren(node) {
+export function fragmentFromNodeChildren(node) {
         var fragment = getDocument(node).createDocumentFragment(), child;
         while ( (child = node.firstChild) ) {
             fragment.appendChild(child);
@@ -354,20 +304,21 @@
         return fragment;
     }
 
-    var getComputedStyleProperty;
+    var _getComputedStyleProperty;
     if (typeof window.getComputedStyle != UNDEF) {
-        getComputedStyleProperty = function(el, propName) {
+        _getComputedStyleProperty = function(el, propName) {
             return getWindow(el).getComputedStyle(el, null)[propName];
         };
-    } else if (typeof document.documentElement.currentStyle != UNDEF) {
-        getComputedStyleProperty = function(el, propName) {
+    } else if (typeof (document.documentElement as any).currentStyle != UNDEF) {
+        _getComputedStyleProperty = function(el, propName) {
             return el.currentStyle ? el.currentStyle[propName] : "";
         };
     } else {
         module.fail("No means of obtaining computed style properties found");
     }
+export const getComputedStyleProperty = _getComputedStyleProperty;
 
-    function createTestElement(doc, html, contentEditable) {
+export function createTestElement(doc, html, contentEditable) {
         var body = getBody(doc);
         var el = doc.createElement("div");
         el.contentEditable = "" + !!contentEditable;
@@ -386,26 +337,25 @@
         return el;
     }
 
-    function removeNode(node) {
+export function removeNode(node) {
         return node.parentNode.removeChild(node);
     }
 
-    function NodeIterator(root) {
-        this.root = root;
-        this._next = root;
-    }
+export class NodeIterator {
+        private _next;
+        constructor(public root) {
+            this._next = root;
+        }
+        private static _current = null;
 
-    NodeIterator.prototype = {
-        _current: null,
-
-        hasNext: function() {
+        hasNext() {
             return !!this._next;
-        },
+        }
 
-        next: function() {
-            var n = this._current = this._next;
+        next() {
+            var n = NodeIterator._current = this._next;
             var child, next;
-            if (this._current) {
+            if (NodeIterator._current) {
                 child = n.firstChild;
                 if (child) {
                     this._next = child;
@@ -417,90 +367,30 @@
                     this._next = next;
                 }
             }
-            return this._current;
-        },
-
-        detach: function() {
-            this._current = this._next = this.root = null;
+            return NodeIterator._current;
         }
-    };
 
-    function createIterator(root) {
+        detach() {
+            NodeIterator._current = this._next = this.root = null;
+        }
+    }
+
+export function createIterator(root) {
         return new NodeIterator(root);
     }
 
-    function DomPosition(node, offset) {
-        this.node = node;
-        this.offset = offset;
-    }
-
-    DomPosition.prototype = {
-        equals: function(pos) {
+export class DomPosition {
+        constructor(public node, public offset) {
+        }
+        equals(pos) {
             return !!pos && this.node === pos.node && this.offset == pos.offset;
-        },
+        }
 
-        inspect: function() {
+        inspect() {
             return "[DomPosition(" + inspectNode(this.node) + ":" + this.offset + ")]";
-        },
+        }
 
-        toString: function() {
+        toString() {
             return this.inspect();
         }
-    };
-
-    function DOMException(codeName) {
-        this.code = this[codeName];
-        this.codeName = codeName;
-        this.message = "DOMException: " + this.codeName;
     }
-
-    DOMException.prototype = {
-        INDEX_SIZE_ERR: 1,
-        HIERARCHY_REQUEST_ERR: 3,
-        WRONG_DOCUMENT_ERR: 4,
-        NO_MODIFICATION_ALLOWED_ERR: 7,
-        NOT_FOUND_ERR: 8,
-        NOT_SUPPORTED_ERR: 9,
-        INVALID_STATE_ERR: 11,
-        INVALID_NODE_TYPE_ERR: 24
-    };
-
-    DOMException.prototype.toString = function() {
-        return this.message;
-    };
-
-    api.dom = {
-        arrayContains: arrayContains,
-        isHtmlNamespace: isHtmlNamespace,
-        parentElement: parentElement,
-        getNodeIndex: getNodeIndex,
-        getNodeLength: getNodeLength,
-        getCommonAncestor: getCommonAncestor,
-        isAncestorOf: isAncestorOf,
-        isOrIsAncestorOf: isOrIsAncestorOf,
-        getClosestAncestorIn: getClosestAncestorIn,
-        isCharacterDataNode: isCharacterDataNode,
-        isTextOrCommentNode: isTextOrCommentNode,
-        insertAfter: insertAfter,
-        splitDataNode: splitDataNode,
-        getDocument: getDocument,
-        getWindow: getWindow,
-        getIframeWindow: getIframeWindow,
-        getIframeDocument: getIframeDocument,
-        getBody: getBody,
-        isWindow: isWindow,
-        getContentDocument: getContentDocument,
-        getRootContainer: getRootContainer,
-        comparePoints: comparePoints,
-        isBrokenNode: isBrokenNode,
-        inspectNode: inspectNode,
-        getComputedStyleProperty: getComputedStyleProperty,
-        createTestElement: createTestElement,
-        removeNode: removeNode,
-        fragmentFromNodeChildren: fragmentFromNodeChildren,
-        createIterator: createIterator,
-        DomPosition: DomPosition
-    };
-
-    api.DOMException = DOMException;
-});

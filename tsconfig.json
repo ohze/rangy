@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "outDir": "./lib",
-    "allowJs": true,
-    "target": "es5"
+    "outDir": "./tscOut",
+    "target": "es2015",
+    "declaration": true,
+    "declarationDir": "./lib",
+    "moduleResolution": "node",
   },
   "include": [
-//    "./src/**/*"
-    "./src/core/core.ts"
+    "./src/core/*.ts",
   ]
 }
