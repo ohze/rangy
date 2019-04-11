@@ -4,9 +4,9 @@
     "target": "es2015",
     "declaration": true,
     "declarationDir": "./lib",
-    "moduleResolution": "node",
+    "moduleResolution": "node"
   },
   "include": [
-    "./src/core/*.ts",
+    "./src/**/*.ts"
   ]
 }

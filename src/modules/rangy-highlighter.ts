@@ -2,21 +2,21 @@
  * Highlighter module for Rangy, a cross-browser JavaScript range and selection library
  * https://github.com/timdown/rangy
  *
- * Depends on Rangy core, ClassApplier and optionally TextRange modules.
+ * Depends on Rangy core, ClassApplier modules.
  *
  * Copyright %%build:year%%, Tim Down
  * Licensed under the MIT license.
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-/* build:modularizeWithRangyDependency */
-rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
-    var dom = api.dom;
-    var contains = dom.arrayContains;
-    var getBody = dom.getBody;
-    var createOptions = api.util.createOptions;
-    var forEach = api.util.forEach;
-    var nextHighlightId = 1;
+// import {Module} from "../core/module";
+import {forEach} from "../core/util";
+import {getBody, arrayContains as contains} from '../core/dom';
+import {WrappedRange} from "../core/wrappedrange";
+import {WrappedSelection} from "../core/wrappedselection";
+import {api} from "../core/index";
+
+// const module = new Module("Highlighter", ["ClassApplier"]);
 
     // Puts highlights in order, last in document first.
     function compareHighlights(h1, h2) {
@@ -28,25 +28,46 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
     }
 
     /*----------------------------------------------------------------------------------------------------------------*/
+interface SerializedSelectionT {
+    characterRange: CharacterRange;
+    backward: boolean;
+}
+
+type ConverterCreator = () => Converter;
+
+interface Converter {
+    type?: string;
+
+    rangeToCharacterRange(range: RangyRange, containerNode?: Node): CharacterRange;
+
+    characterRangeToRange(doc: Document | Window | HTMLIFrameElement,
+                          characterRange: CharacterRange,
+                          containerNode: Node): WrappedRange;
+
+    serializeSelection(selection: WrappedSelection, containerNode: Node): SerializedSelectionT[];
+
+    restoreSelection(selection: WrappedSelection, savedSelection: SerializedSelectionT[], containerNode: Node): void;
+}
 
     var highlighterTypes = {};
 
-    function HighlighterType(type, converterCreator) {
-        this.type = type;
-        this.converterCreator = converterCreator;
+class HighlighterType {
+    constructor(public type: string,
+                public converterCreator: ConverterCreator) {
     }
 
-    HighlighterType.prototype.create = function() {
+    create(): Converter {
         var converter = this.converterCreator();
         converter.type = this.type;
         return converter;
     };
+}
 
-    function registerHighlighterType(type, converterCreator) {
+export function registerHighlighterType(type: string, converterCreator: ConverterCreator) {
         highlighterTypes[type] = new HighlighterType(type, converterCreator);
     }
 
-    function getConverter(type) {
+    function getConverter(type: string): Converter {
         var highlighterType = highlighterTypes[type];
         if (highlighterType instanceof HighlighterType) {
             return highlighterType.create();
@@ -55,33 +76,30 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
         }
     }
 
-    api.registerHighlighterType = registerHighlighterType;
-
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    function CharacterRange(start, end) {
-        this.start = start;
-        this.end = end;
-    }
+class CharacterRange {
+        constructor(public start: number,
+                    public end: number) {
+        }
 
-    CharacterRange.prototype = {
-        intersects: function(charRange) {
+        intersects(charRange) {
             return this.start < charRange.end && this.end > charRange.start;
-        },
+        }
 
-        isContiguousWith: function(charRange) {
+        isContiguousWith(charRange) {
             return this.start == charRange.end || this.end == charRange.start;
-        },
+        }
 
-        union: function(charRange) {
+        union(charRange) {
             return new CharacterRange(Math.min(this.start, charRange.start), Math.max(this.end, charRange.end));
-        },
+        }
 
-        intersection: function(charRange) {
+        intersection(charRange) {
             return new CharacterRange(Math.max(this.start, charRange.start), Math.min(this.end, charRange.end));
-        },
+        }
 
-        getComplements: function(charRange) {
+        getComplements(charRange) {
             var ranges = [];
             if (this.start >= charRange.start) {
                 if (this.end <= charRange.end) {
@@ -95,20 +113,20 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                 }
             }
             return ranges;
-        },
+        }
 
-        toString: function() {
+        toString() {
             return "[CharacterRange(" + this.start + ", " + this.end + ")]";
         }
-    };
 
-    CharacterRange.fromCharacterRange = function(charRange) {
+    static fromCharacterRange(charRange) {
         return new CharacterRange(charRange.start, charRange.end);
-    };
+    }
+}
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    var textContentConverter = {
+    var textContentConverter: Converter = {
         rangeToCharacterRange: function(range, containerNode) {
             var bookmark = range.getBookmark(containerNode);
             return new CharacterRange(bookmark.start, bookmark.end);
@@ -159,98 +177,60 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    // Lazily load the TextRange-based converter so that the dependency is only checked when required.
-    registerHighlighterType("TextRange", (function() {
-        var converter;
+    class Highlight {
+        private static nextId = 1;
+        applied = false;
+        id: number;
 
-        return function() {
-            if (!converter) {
-                // Test that textRangeModule exists and is supported
-                var textRangeModule = api.modules.TextRange;
-                if (!textRangeModule) {
-                    throw new Error("TextRange module is missing.");
-                } else if (!textRangeModule.supported) {
-                    throw new Error("TextRange module is present but not supported.");
-                }
-
-                converter = {
-                    rangeToCharacterRange: function(range, containerNode) {
-                        return CharacterRange.fromCharacterRange( range.toCharacterRange(containerNode) );
-                    },
-
-                    characterRangeToRange: function(doc, characterRange, containerNode) {
-                        var range = api.createRange(doc);
-                        range.selectCharacters(containerNode, characterRange.start, characterRange.end);
-                        return range;
-                    },
-
-                    serializeSelection: function(selection, containerNode) {
-                        return selection.saveCharacterRanges(containerNode);
-                    },
-
-                    restoreSelection: function(selection, savedSelection, containerNode) {
-                        selection.restoreCharacterRanges(containerNode, savedSelection);
-                    }
-                };
+        constructor(public doc,
+                    public characterRange,
+                    public classApplier,
+                    public converter,
+                    id?: number,
+                    public containerElementId: string|null = null) {
+            if (id) {
+                this.id = id;
+                Highlight.nextId = Math.max(Highlight.nextId, id + 1);
+            } else {
+                this.id = Highlight.nextId++;
             }
-
-            return converter;
-        };
-    })());
-
-    /*----------------------------------------------------------------------------------------------------------------*/
-
-    function Highlight(doc, characterRange, classApplier, converter, id, containerElementId) {
-        if (id) {
-            this.id = id;
-            nextHighlightId = Math.max(nextHighlightId, id + 1);
-        } else {
-            this.id = nextHighlightId++;
         }
-        this.characterRange = characterRange;
-        this.doc = doc;
-        this.classApplier = classApplier;
-        this.converter = converter;
-        this.containerElementId = containerElementId || null;
-        this.applied = false;
-    }
 
-    Highlight.prototype = {
-        getContainerElement: function() {
+        getContainerElement() {
             return getContainerElement(this.doc, this.containerElementId);
-        },
+        }
 
-        getRange: function() {
+        getRange() {
             return this.converter.characterRangeToRange(this.doc, this.characterRange, this.getContainerElement());
-        },
+        }
 
-        fromRange: function(range) {
+        fromRange(range) {
             this.characterRange = this.converter.rangeToCharacterRange(range, this.getContainerElement());
-        },
+        }
 
-        getText: function() {
+        getText() {
             return this.getRange().toString();
-        },
+        }
 
-        containsElement: function(el) {
+        containsElement(el) {
             return this.getRange().containsNodeContents(el.firstChild);
-        },
+        }
 
-        unapply: function() {
+        unapply() {
             this.classApplier.undoToRange(this.getRange());
             this.applied = false;
-        },
+        }
 
-        apply: function() {
+        apply() {
             this.classApplier.applyToRange(this.getRange());
             this.applied = true;
-        },
+        }
 
-        getHighlightElements: function() {
+        getHighlightElements() {
             return this.classApplier.getElementsWithClassIntersectingRange(this.getRange());
-        },
+        }
 
-        toString: function() {
+        toString() {
             return "[Highlight(ID: " + this.id + ", class: " + this.classApplier.className + ", character range: " +
                 this.characterRange.start + " - " + this.characterRange.end + ")]";
         }
@@ -258,20 +238,21 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    function Highlighter(doc, type) {
-        type = type || "textContent";
-        this.doc = doc || document;
-        this.classAppliers = {};
-        this.highlights = [];
-        this.converter = getConverter(type);
-    }
+export class Highlighter {
+        classAppliers = {};
+        highlights = [];
+        doc: Document;
+        converter: Converter;
 
-    Highlighter.prototype = {
-        addClassApplier: function(classApplier) {
+        constructor(doc?: Document, type: string = "textContent") {
+            this.doc = doc || document;
+            this.converter = getConverter(type);
+        }
+        addClassApplier(classApplier) {
             this.classAppliers[classApplier.className] = classApplier;
-        },
+        }
 
-        getHighlightForElement: function(el) {
+        getHighlightForElement(el) {
             var highlights = this.highlights;
             for (var i = 0, len = highlights.length; i < len; ++i) {
                 if (highlights[i].containsElement(el)) {
@@ -279,9 +260,9 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                 }
             }
             return null;
-        },
+        }
 
-        removeHighlights: function(highlights) {
+        removeHighlights(highlights) {
             for (var i = 0, len = this.highlights.length, highlight; i < len; ++i) {
                 highlight = this.highlights[i];
                 if (contains(highlights, highlight)) {
@@ -289,13 +270,13 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                     this.highlights.splice(i--, 1);
                 }
             }
-        },
+        }
 
-        removeAllHighlights: function() {
+        removeAllHighlights() {
             this.removeHighlights(this.highlights);
-        },
+        }
 
-        getIntersectingHighlights: function(ranges) {
+        getIntersectingHighlights(ranges) {
             // Test each range against each of the highlighted ranges to see whether they overlap
             var intersectingHighlights = [], highlights = this.highlights;
             forEach(ranges, function(range) {
@@ -308,9 +289,9 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             });
 
             return intersectingHighlights;
-        },
+        }
 
-        highlightCharacterRanges: function(className, charRanges, options) {
+        highlightCharacterRanges(className, charRanges, options) {
             var i, len, j;
             var highlights = this.highlights;
             var converter = this.converter;
@@ -318,10 +299,11 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             var highlightsToRemove = [];
             var classApplier = className ? this.classAppliers[className] : null;
 
-            options = createOptions(options, {
+            options = {
                 containerElementId: null,
-                exclusive: true
-            });
+                exclusive: true,
+                ...options
+            };
 
             var containerElementId = options.containerElementId;
             var exclusive = options.exclusive;
@@ -413,16 +395,17 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             });
 
             return newHighlights;
-        },
+        }
 
-        highlightRanges: function(className, ranges, options) {
+        highlightRanges(className, ranges, options) {
             var selCharRanges = [];
             var converter = this.converter;
 
-            options = createOptions(options, {
+            options = {
                 containerElement: null,
-                exclusive: true
-            });
+                exclusive: true,
+                ...options
+            };
 
             var containerElement = options.containerElement;
             var containerElementId = containerElement ? containerElement.id : null;
@@ -441,16 +424,17 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
                 containerElementId: containerElementId,
                 exclusive: options.exclusive
             });
-        },
+        }
 
-        highlightSelection: function(className, options) {
+        highlightSelection(className, options) {
             var converter = this.converter;
             var classApplier = className ? this.classAppliers[className] : false;
 
-            options = createOptions(options, {
+            options = {
                 containerElementId: null,
-                exclusive: true
-            });
+                exclusive: true,
+                ...options
+            };
 
             var containerElementId = options.containerElementId;
             var exclusive = options.exclusive;
@@ -480,35 +464,36 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             converter.restoreSelection(selection, serializedSelection, containerElement);
 
             return newHighlights;
-        },
+        }
 
-        unhighlightSelection: function(selection) {
+        unhighlightSelection(selection) {
             selection = selection || api.getSelection(this.doc);
             var intersectingHighlights = this.getIntersectingHighlights( selection.getAllRanges() );
             this.removeHighlights(intersectingHighlights);
             selection.removeAllRanges();
             return intersectingHighlights;
-        },
+        }
 
-        getHighlightsInSelection: function(selection) {
+        getHighlightsInSelection(selection) {
             selection = selection || api.getSelection(this.doc);
             return this.getIntersectingHighlights(selection.getAllRanges());
-        },
+        }
 
-        selectionOverlapsHighlight: function(selection) {
+        selectionOverlapsHighlight(selection) {
             return this.getHighlightsInSelection(selection).length > 0;
-        },
+        }
 
-        serialize: function(options) {
+        serialize(options) {
             var highlighter = this;
             var highlights = highlighter.highlights;
             var serializedType, serializedHighlights, convertType, serializationConverter;
 
             highlights.sort(compareHighlights);
-            options = createOptions(options, {
+            options = {
                 serializeHighlightText: false,
-                type: highlighter.converter.type
-            });
+                type: highlighter.converter.type,
+                ...options
+            };
 
             serializedType = options.type;
             convertType = (serializedType != highlighter.converter.type);
@@ -547,9 +532,9 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             });
 
             return serializedHighlights.join("|");
-        },
+        }
 
-        deserialize: function(serialized) {
+        deserialize(serialized) {
             var serializedHighlights = serialized.split("|");
             var highlights = [];
 
@@ -595,12 +580,9 @@ rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
             }
             this.highlights = highlights;
         }
-    };
+}
 
-    api.Highlighter = Highlighter;
-
-    api.createHighlighter = function(doc, rangeCharacterOffsetConverterType) {
-        return new Highlighter(doc, rangeCharacterOffsetConverterType);
-    };
-});
-/* build:modularizeEnd */
+export function createHighlighter(doc?: Document,
+                                  rangeCharacterOffsetConverterType: string = "textContent") {
+    return new Highlighter(doc, rangeCharacterOffsetConverterType);
+}

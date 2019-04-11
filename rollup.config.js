@@ -20,13 +20,37 @@ const replacePlugin = replace({
     ]
 });
 
-const config = {
-    input: ["./tscOut/index.js"],
-};
+function moduleConfig(file) {
+    const isCore = file.indexOf('/core/') === -1;
+    return {
+        input: [`./tscOut/${file}.js`],
+        external: (id, parentId, isResolved) => {
+            //console.log(id, parentId, isResolved);
+            return !isCore;
+        },
+        output: [
+            { file: `./lib/${file}.cjs.js`, format: 'cjs' },
+            { file: `./lib/${file}.esm.js`, format: 'es' },
+        ],
+        plugins: [
+            replacePlugin,
+        ]
+    }
+}
+
+const moduleConfigs = [
+    'core/index',
+    'modules/rangy-classapplier',
+    'modules/rangy-highlighter',
+    'modules/rangy-selectionsaverestore',
+    'modules/rangy-serializer',
+    'modules/rangy-util',
+].map(moduleConfig);
 
 // see https://github.com/rollup/rollup-starter-lib/blob/master/rollup.config.js
 export default [
-    {   ...config,
+    {
+        input: ["./tscOut/core/index.js"],
         output: {
             format: 'umd',
             name: 'rangy',
@@ -40,14 +64,5 @@ export default [
             commonjs()
         ],
     },
-    {   ...config,
-        // external: ['core-js/features/object/assign'],
-        output: [
-            { file: pkg.main, format: 'cjs' },
-            { file: pkg.module, format: 'es' }
-        ],
-        plugins: [
-            replacePlugin,
-        ]
-    }
+    ...moduleConfigs
 ];

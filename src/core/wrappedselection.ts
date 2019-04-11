@@ -56,7 +56,7 @@ const module = new Module("WrappedSelection", ["DomRange", "WrappedRange"]);
     }
     const selectionIsBackward = winSelectionIsBackward;
 
-//@deprecated always return true because we don't support TextRange / document.selection in old IE
+/** @deprecated always return true because we don't support TextRange / document.selection in old IE */
 export function isSelectionValid() {
     return true;
 }
@@ -300,7 +300,7 @@ let selectionIsCollapsed =
         return null;
     }
 
-    export function getSelection(win) {
+    export function getSelection(win?) {
         // Check if the parameter is a Rangy Selection object
         if (win && win instanceof WrappedSelection) {
             win.refresh();
@@ -731,9 +731,11 @@ function createWrappedSelection<TBase extends Constructor<WrappedSelBase>>(Base:
 }
 
 export const WrappedSelection = createWrappedSelection(WrappedSelBase);
-export type WrappedSelection = InstanceType<typeof WrappedSelection>;
+// export type WrappedSelection = InstanceType<typeof WrappedSelection>;
+export interface WrappedSelection extends InstanceType<typeof WrappedSelection>{};
+//alias
 export const Selection = WrappedSelection;
-// export type Selection = WrappedSelection;
+export interface Selection extends WrappedSelection{};
 
 export function shimGetSelection(win?) {
         if(!win) win = window;

@@ -14,76 +14,26 @@
  * Build date: %%build:date%%
  */
 /* build:modularizeWithRangyDependency */
-rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
+
+import {crc32} from "./crc32";
+import {Module} from "../core/module";
+import * as dom from "../core/dom";
+import {api} from "../core/index";
+
+const module = new Module("Serializer", ["WrappedSelection"]);
+
     var UNDEF = "undefined";
-    var util = api.util;
 
     // encodeURIComponent and decodeURIComponent are required for cookie handling
     if (typeof encodeURIComponent == UNDEF || typeof decodeURIComponent == UNDEF) {
         module.fail("encodeURIComponent and/or decodeURIComponent method is missing");
     }
 
-    // Checksum for checking whether range can be serialized
-    var crc32 = (function() {
-        function utf8encode(str) {
-            var utf8CharCodes = [];
-
-            for (var i = 0, len = str.length, c; i < len; ++i) {
-                c = str.charCodeAt(i);
-                if (c < 128) {
-                    utf8CharCodes.push(c);
-                } else if (c < 2048) {
-                    utf8CharCodes.push((c >> 6) | 192, (c & 63) | 128);
-                } else {
-                    utf8CharCodes.push((c >> 12) | 224, ((c >> 6) & 63) | 128, (c & 63) | 128);
-                }
-            }
-            return utf8CharCodes;
-        }
-
-        var cachedCrcTable = null;
-
-        function buildCRCTable() {
-            var table = [];
-            for (var i = 0, j, crc; i < 256; ++i) {
-                crc = i;
-                j = 8;
-                while (j--) {
-                    if ((crc & 1) == 1) {
-                        crc = (crc >>> 1) ^ 0xEDB88320;
-                    } else {
-                        crc >>>= 1;
-                    }
-                }
-                table[i] = crc >>> 0;
-            }
-            return table;
-        }
-
-        function getCrcTable() {
-            if (!cachedCrcTable) {
-                cachedCrcTable = buildCRCTable();
-            }
-            return cachedCrcTable;
-        }
-
-        return function(str) {
-            var utf8CharCodes = utf8encode(str), crc = -1, crcTable = getCrcTable();
-            for (var i = 0, len = utf8CharCodes.length, y; i < len; ++i) {
-                y = (crc ^ utf8CharCodes[i]) & 0xFF;
-                crc = (crc >>> 8) ^ crcTable[y];
-            }
-            return (crc ^ -1) >>> 0;
-        };
-    })();
-
-    var dom = api.dom;
-
     function escapeTextForHtml(str) {
         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    function nodeToInfoString(node, infoParts) {
+export function nodeToInfoString(node, infoParts?) {
         infoParts = infoParts || [];
         var nodeType = node.nodeType, children = node.childNodes, childCount = children.length;
         var nodeInfo = [nodeType, node.nodeName, childCount].join(":");
@@ -116,22 +66,22 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
     // attributes and comments and includes child node counts. This is done instead of using innerHTML to work around
     // IE <= 8's policy of including element properties in attributes, which ruins things by changing an element's
     // innerHTML whenever the user changes an input within the element.
-    function getElementChecksum(el) {
+export function getElementChecksum(el) {
         var info = nodeToInfoString(el).join("");
         return crc32(info).toString(16);
     }
 
-    function serializePosition(node, offset, rootNode) {
+export function serializePosition(node, offset, rootNode) {
         var pathParts = [], n = node;
         rootNode = rootNode || dom.getDocument(node).documentElement;
         while (n && n != rootNode) {
-            pathParts.push(dom.getNodeIndex(n, true));
+            pathParts.push(dom.getNodeIndex(n));
             n = n.parentNode;
         }
         return pathParts.join("/") + ":" + offset;
     }
 
-    function deserializePosition(serialized, rootNode, doc) {
+export function deserializePosition(serialized, rootNode, doc) {
         if (!rootNode) {
             rootNode = (doc || document).documentElement;
         }
@@ -152,7 +102,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         return new dom.DomPosition(node, parseInt(parts[1], 10));
     }
 
-    function serializeRange(range, omitChecksum, rootNode) {
+export function serializeRange(range, omitChecksum?, rootNode?) {
         rootNode = rootNode || api.DomRange.getRangeDocument(range).documentElement;
         if (!dom.isOrIsAncestorOf(rootNode, range.commonAncestorContainer)) {
             throw module.createError("serializeRange(): range " + range.inspect() +
@@ -168,7 +118,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
 
     var deserializeRegex = /^([^,]+),([^,\{]+)(\{([^}]+)\})?$/;
 
-    function deserializeRange(serialized, rootNode, doc) {
+export function deserializeRange(serialized, rootNode, doc) {
         if (rootNode) {
             doc = doc || dom.getDocument(rootNode);
         } else {
@@ -190,7 +140,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         return range;
     }
 
-    function canDeserializeRange(serialized, rootNode, doc) {
+export function canDeserializeRange(serialized, rootNode, doc) {
         if (!rootNode) {
             rootNode = (doc || document).documentElement;
         }
@@ -199,7 +149,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         return !checksum || checksum === getElementChecksum(rootNode);
     }
 
-    function serializeSelection(selection, omitChecksum, rootNode) {
+export function serializeSelection(selection, omitChecksum?, rootNode?) {
         selection = api.getSelection(selection);
         var ranges = selection.getAllRanges(), serializedRanges = [];
         for (var i = 0, len = ranges.length; i < len; ++i) {
@@ -208,7 +158,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         return serializedRanges.join("|");
     }
 
-    function deserializeSelection(serialized, rootNode, win) {
+export function deserializeSelection(serialized, rootNode, win?) {
         if (rootNode) {
             win = win || dom.getWindow(rootNode);
         } else {
@@ -227,7 +177,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         return sel;
     }
 
-    function canDeserializeSelection(serialized, rootNode, win) {
+export function canDeserializeSelection(serialized, rootNode, win) {
         var doc;
         if (rootNode) {
             doc = win ? win.document : dom.getDocument(rootNode);
@@ -262,7 +212,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         return null;
     }
 
-    function restoreSelectionFromCookie(win) {
+export function restoreSelectionFromCookie(win) {
         win = win || window;
         var serialized = getSerializedSelectionFromCookie(win.document.cookie);
         if (serialized) {
@@ -270,7 +220,7 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         }
     }
 
-    function saveSelectionCookie(win, props) {
+export function saveSelectionCookie(win, props) {
         win = win || window;
         props = (typeof props == "object") ? props : {};
         var expires = props.expires ? ";expires=" + props.expires.toUTCString() : "";
@@ -280,22 +230,3 @@ rangy.createModule("Serializer", ["WrappedSelection"], function(api, module) {
         var serialized = serializeSelection(api.getSelection(win));
         win.document.cookie = encodeURIComponent(cookieName) + "=" + encodeURIComponent(serialized) + expires + path + domain + secure;
     }
-
-    util.extend(api, {
-        serializePosition: serializePosition,
-        deserializePosition: deserializePosition,
-        serializeRange: serializeRange,
-        deserializeRange: deserializeRange,
-        canDeserializeRange: canDeserializeRange,
-        serializeSelection: serializeSelection,
-        deserializeSelection: deserializeSelection,
-        canDeserializeSelection: canDeserializeSelection,
-        restoreSelectionFromCookie: restoreSelectionFromCookie,
-        saveSelectionCookie: saveSelectionCookie,
-        getElementChecksum: getElementChecksum,
-        nodeToInfoString: nodeToInfoString
-    });
-
-    util.crc32 = crc32;
-});
-/* build:modularizeEnd */

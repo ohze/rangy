@@ -31,9 +31,9 @@
         "tsc": "tsc",
         "rollup": "rollup -c"
     },
-    "main": "lib/rangy-core.cjs.js",
-    "module": "lib/rangy-core.esm.js",
-    "browser": "lib/rangy-core.js",
+    "browser": "lib/core/index.js",
+    "module": "lib/core/index.esm.js",
+    "main": "lib/core/index.cjs.js",
     "directories": {
         "lib": "./lib"
     },

@@ -12,12 +12,14 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-/* build:modularizeWithRangyDependency */
-rangy.createModule("Util", ["WrappedSelection"], function(api, module) {
-    var rangeProto = api.rangePrototype;
-    var selProto = api.selectionPrototype;
+import {WrappedSelection as SelProto} from "../core/wrappedselection";
+import {DomRange as RangeProto} from "../core/domrange";
+import {api} from "../core/index";
 
-    selProto.pasteText = function(text) {
+// const module = new Module("Util", ["WrappedSelection"]);
+
+export class WrappedSelection extends SelProto {
+    pasteText(text: string) {
         this.deleteFromDocument();
         var range = this.getRangeAt(0);
         var textNode = range.getDocument().createTextNode(text);
@@ -25,13 +27,7 @@ rangy.createModule("Util", ["WrappedSelection"], function(api, module) {
         this.setSingleRange(range);
     };
 
-    rangeProto.pasteText = function(text) {
-        this.deleteContents();
-        var textNode = this.getDocument().createTextNode(text);
-        this.insertNode(textNode);
-    };
-
-    selProto.pasteHtml = function(html) {
+    pasteHtml(html) {
         this.deleteFromDocument();
         var range = this.getRangeAt(0);
         var frag = this.createContextualFragment(html);
@@ -43,35 +39,27 @@ rangy.createModule("Util", ["WrappedSelection"], function(api, module) {
         this.setSingleRange(range);
     };
 
-    rangeProto.pasteHtml = function(html) {
+    selectNodeContents(node) {
+        var range = api.createRange(this.win);
+        range.selectNodeContents(node);
+        this.setSingleRange(range);
+    };
+}
+
+export class DomRange extends RangeProto {
+    pasteText(text) {
+        this.deleteContents();
+        var textNode = this.getDocument().createTextNode(text);
+        this.insertNode(textNode);
+    };
+
+    pasteHtml(html) {
         this.deleteContents();
         var frag = this.createContextualFragment(html);
         this.insertNode(frag);
     };
 
-    selProto.selectNodeContents = function(node) {
-        var range = api.createRange(this.win);
-        range.selectNodeContents(node);
-        this.setSingleRange(range);
-    };
-
-    api.createRangeFromNode = function(node) {
-        var range = api.createRange(node);
-        range.selectNode(node);
-        return range;
-    };
-
-    api.createRangeFromNodeContents = function(node) {
-        var range = api.createRange(node);
-        range.selectNodeContents(node);
-        return range;
-    };
-
-    api.selectNodeContents = function(node) {
-        api.getSelection().selectNodeContents(node);
-    };
-
-    rangeProto.selectSelectedTextElements = (function() {
+    selectSelectedTextElements = (function() {
         function isInlineElement(node) {
             return node.nodeType == 1 && api.dom.getComputedStyleProperty(node, "display") == "inline";
         }
@@ -88,7 +76,7 @@ rangy.createModule("Util", ["WrappedSelection"], function(api, module) {
             return outerNode;
         }
 
-        return function() {
+        return function(this: RangeProto) {
             var startNode = getOutermostNodeContainingText(this, this.startContainer);
             if (startNode) {
                 this.setStartBefore(startNode);
@@ -100,7 +88,22 @@ rangy.createModule("Util", ["WrappedSelection"], function(api, module) {
             }
         };
     })();
+}
+
+export function createRangeFromNode(node) {
+        var range = api.createRange(node);
+        range.selectNode(node);
+        return range;
+    };
+
+export function createRangeFromNodeContents(node) {
+        var range = api.createRange(node);
+        range.selectNodeContents(node);
+        return range;
+    };
+
+export function selectNodeContents(node) {
+        api.getSelection().selectNodeContents(node);
+    };
 
     // TODO: simple selection save/restore
-});
-/* build:modularizeEnd */

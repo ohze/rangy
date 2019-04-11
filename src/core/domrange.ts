@@ -1266,17 +1266,17 @@ export const DomRange = createPrototypeRange(RangeBase, updateBoundaries);
 export type DomRange = InstanceType<typeof DomRange>;
 // export class DomRange extends createPrototypeRange(RangeBase, updateBoundaries){};
 
-    // @deprecated pls directly import & use the exported member of this module
-    Object.assign(DomRange, {
-        rangeProperties: rangeProperties,
-        RangeIterator: RangeIterator,
-        copyComparisonConstants: copyComparisonConstants,
-        createPrototypeRange: createDomRange,
-        inspect: inspect,
-        toHtml: rangeToHtml,
-        getRangeDocument: getRangeDocument,
-        rangesEqual: rangesEqual,
-    });
+// @deprecated pls directly import & use the exported member of this module
+Object.assign(DomRange, {
+    rangeProperties,
+    RangeIterator,
+    copyComparisonConstants,
+    createPrototypeRange: createDomRange,
+    inspect,
+    toHtml: rangeToHtml,
+    getRangeDocument,
+    rangesEqual,
+});
 
 export function rangesEqual(r1, r2) {
             return r1.startContainer === r2.startContainer &&

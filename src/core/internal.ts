@@ -7,7 +7,6 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-import {shimCreateRange} from "./wrappedrange";
 
 export * from "./api";
 import * as util from "./util";
@@ -20,10 +19,11 @@ export {dom};
 export * from "./domrange";
 
 export * from "./wrappedrange";
+import {shimCreateRange} from "./wrappedrange";
 
 export * from "./wrappedselection";
-import {shimGetSelection, WrappedSelection} from "./wrappedselection";
-export type Selection = InstanceType<typeof WrappedSelection>;
+import {shimGetSelection} from "./wrappedselection";
+
 export function shim(win?) {
     win = win || window;
     shimCreateRange(win);

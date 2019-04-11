@@ -12,10 +12,15 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-/* build:modularizeWithRangyDependency */
-rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
-    var dom = api.dom;
-    var removeNode = dom.removeNode;
+
+import {Module} from "../core/module";
+import * as dom from "../core/dom";
+import {removeNode} from "../core/dom";
+import {selectionHasExtend} from "../core/wrappedselection";
+import {api} from "../core/index";
+
+const module = new Module("SaveRestore", ["WrappedSelection"]);
+
     var isDirectionBackward = api.Selection.isDirectionBackward;
     var markerTextChar = "\ufeff";
 
@@ -58,7 +63,7 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         return r2.compareBoundaryPoints(r1.START_TO_START, r1);
     }
 
-    function saveRange(range, direction) {
+export function saveRange(range, direction) {
         var startEl, endEl, doc = api.DomRange.getRangeDocument(range), text = range.toString();
         var backward = isDirectionBackward(direction);
 
@@ -86,7 +91,7 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         }
     }
 
-    function restoreRange(rangeInfo, normalize) {
+export function restoreRange(rangeInfo, normalize) {
         var doc = rangeInfo.document;
         if (typeof normalize == "undefined") {
             normalize = true;
@@ -121,7 +126,7 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         return range;
     }
 
-    function saveRanges(ranges, direction) {
+export function saveRanges(ranges, direction) {
         var rangeInfos = [], range, doc;
         var backward = isDirectionBackward(direction);
 
@@ -149,11 +154,7 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         return rangeInfos;
     }
 
-    function saveSelection(win) {
-        if (!api.isSelectionValid(win)) {
-            module.warn("Cannot save selection. This usually happens when the selection is collapsed and the selection document has lost focus.");
-            return null;
-        }
+export function saveSelection(win) {
         var sel = api.getSelection(win);
         var ranges = sel.getAllRanges();
         var backward = (ranges.length == 1 && sel.isBackward());
@@ -174,7 +175,7 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         };
     }
 
-    function restoreRanges(rangeInfos) {
+export function restoreRanges(rangeInfos) {
         var ranges = [];
 
         // Ranges are in reverse order of appearance in the DOM. We want to restore earliest first to avoid
@@ -188,13 +189,13 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         return ranges;
     }
 
-    function restoreSelection(savedSelection, preserveDirection) {
+export function restoreSelection(savedSelection, preserveDirection) {
         if (!savedSelection.restored) {
             var rangeInfos = savedSelection.rangeInfos;
             var sel = api.getSelection(savedSelection.win);
             var ranges = restoreRanges(rangeInfos), rangeCount = rangeInfos.length;
 
-            if (rangeCount == 1 && preserveDirection && api.features.selectionHasExtend && rangeInfos[0].backward) {
+            if (rangeCount == 1 && preserveDirection && selectionHasExtend && rangeInfos[0].backward) {
                 sel.removeAllRanges();
                 sel.addRange(ranges[0], true);
             } else {
@@ -205,14 +206,14 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
         }
     }
 
-    function removeMarkerElement(doc, markerId) {
+export function removeMarkerElement(doc, markerId) {
         var markerEl = gEBI(markerId, doc);
         if (markerEl) {
             removeNode(markerEl);
         }
     }
 
-    function removeMarkers(savedSelection) {
+export function removeMarkers(savedSelection) {
         var rangeInfos = savedSelection.rangeInfos;
         for (var i = 0, len = rangeInfos.length, rangeInfo; i < len; ++i) {
             rangeInfo = rangeInfos[i];
@@ -224,16 +225,3 @@ rangy.createModule("SaveRestore", ["WrappedSelection"], function(api, module) {
             }
         }
     }
-
-    api.util.extend(api, {
-        saveRange: saveRange,
-        restoreRange: restoreRange,
-        saveRanges: saveRanges,
-        restoreRanges: restoreRanges,
-        saveSelection: saveSelection,
-        restoreSelection: restoreSelection,
-        removeMarkerElement: removeMarkerElement,
-        removeMarkers: removeMarkers
-    });
-});
-/* build:modularizeEnd */
