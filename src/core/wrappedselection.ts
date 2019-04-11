@@ -9,7 +9,8 @@ import * as dom from "./dom";
 import {DomPosition, getDocument, getBody} from "./dom";
 
 //domrange, wrappedrange, wrappedselection are circular depend on each other
-import {DomRange, rangesEqual, createNativeRange, createRange, WrappedRange} from "./internal";
+import {DomRange, rangesEqual} from "./domrange";
+import {createNativeRange, createRange, WrappedRange} from "./wrappedrange";
 
 import * as log4javascript from "log4javascript";
 
@@ -91,9 +92,7 @@ export const selectionHasExtend = isHostMethod(testSelection, "extend");
 export const selectionHasRangeCount = (typeof testSelection.rangeCount == NUMBER);
 
 //features
-export let selectionSupportsMultipleRanges = false;
-//features
-export let collapsedNonEditableSelectionsSupported = true;
+export const selectionSupportsMultipleRanges = false;
 
 const addRangeBackwardToNative = selectionHasExtend
     ?   function(nativeSelection, range) {
@@ -105,93 +104,9 @@ const addRangeBackwardToNative = selectionHasExtend
         }
     :   null;
 
-// test to set collapsedNonEditableSelectionsSupported, selectionSupportsMultipleRanges
-    if (util.areHostMethods(testSelection, ["addRange", "getRangeAt", "removeAllRanges"]) &&
-            typeof testSelection.rangeCount == NUMBER && features.implementsDomRange) {
-
-        (function() {
-            // Previously an iframe was used but this caused problems in some circumstances in IE, so tests are
-            // performed on the current document's selection. See issue 109.
-
-            // Note also that if a selection previously existed, it is wiped and later restored by these tests. This
-            // will result in the selection direction begin reversed if the original selection was backwards and the
-            // browser does not support setting backwards selections (Internet Explorer, I'm looking at you).
-            var sel = window.getSelection();
-            if (sel) {
-                // Store the current selection
-                var originalSelectionRangeCount = sel.rangeCount;
-                var selectionHasMultipleRanges = (originalSelectionRangeCount > 1);
-                var originalSelectionRanges = [];
-                var originalSelectionBackward = winSelectionIsBackward(sel);
-                for (var i = 0; i < originalSelectionRangeCount; ++i) {
-                    originalSelectionRanges[i] = sel.getRangeAt(i);
-                }
-
-                // Create some test elements
-                var testEl = dom.createTestElement(document, "", false);
-                var textNode = testEl.appendChild( document.createTextNode("\u00a0\u00a0\u00a0") );
-
-                // Test whether the native selection will allow a collapsed selection within a non-editable element
-                var r1 = document.createRange();
-
-                r1.setStart(textNode, 1);
-                r1.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(r1);
-                collapsedNonEditableSelectionsSupported = (sel.rangeCount == 1);
-                sel.removeAllRanges();
-
-                // Test whether the native selection is capable of supporting multiple ranges.
-                if (!selectionHasMultipleRanges) {
-                    // Doing the original feature test here in Chrome 36 (and presumably later versions) prints a
-                    // console error of "Discontiguous selection is not supported." that cannot be suppressed. There's
-                    // nothing we can do about this while retaining the feature test so we have to resort to a browser
-                    // sniff. I'm not happy about it. See
-                    // https://code.google.com/p/chromium/issues/detail?id=399791
-                    var chromeMatch = window.navigator.appVersion.match(/Chrome\/(.*?) /);
-                    if (chromeMatch && parseInt(chromeMatch[1]) >= 36) {
-                        selectionSupportsMultipleRanges = false;
-                    } else {
-                        var r2 = r1.cloneRange();
-                        r1.setStart(textNode, 0);
-                        r2.setEnd(textNode, 3);
-                        r2.setStart(textNode, 2);
-                        sel.addRange(r1);
-                        sel.addRange(r2);
-                        selectionSupportsMultipleRanges = (sel.rangeCount == 2);
-                    }
-                }
-
-                // Clean up
-                dom.removeNode(testEl);
-                sel.removeAllRanges();
-
-                for (i = 0; i < originalSelectionRangeCount; ++i) {
-                    if (i == 0 && originalSelectionBackward) {
-                        if (addRangeBackwardToNative) {
-                            addRangeBackwardToNative(sel, originalSelectionRanges[i]);
-                        } else {
-                            console.log("Rangy initialization: original selection was backwards but selection has been restored forwards because the browser does not support Selection.extend");
-                            sel.addRange(originalSelectionRanges[i]);
-                        }
-                    } else {
-                        sel.addRange(originalSelectionRanges[i]);
-                    }
-                }
-            }
-        })();
-    }
-
     // ControlRanges
 //features
-export let implementsControlRange = false;
-
-    if (body && isHostMethod(body, "createControlRange")) {
-        let testControlRange = body.createControlRange();
-        if (util.areHostProperties(testControlRange, ["item", "add"])) {
-            implementsControlRange = true;
-        }
-    }
+export const implementsControlRange = false;
 
     // Selection collapsedness
 let selectionIsCollapsed =

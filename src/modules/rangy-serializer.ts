@@ -18,7 +18,7 @@
 import {crc32} from "./crc32";
 import {Module} from "../core/module";
 import * as dom from "../core/dom";
-import {api} from "../core/index";
+import * as api from "../core/index";
 
 const module = new Module("Serializer", ["WrappedSelection"]);
 

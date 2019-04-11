@@ -3,7 +3,7 @@ import {onDocReady} from './api';
 import {Module} from "./module";
 import {getBody, getContentDocument, getNodeLength} from './dom';
 //domrange, wrappedrange, wrappedselection are circular depend on each other
-import {DomRange, createPrototypeRange, rangeProperties, IterableRangeBase} from "./internal";
+import {DomRange, createPrototypeRange, rangeProperties, IterableRangeBase} from "./domrange";
 
 import * as log4javascript from "log4javascript";
 

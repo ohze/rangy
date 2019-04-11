@@ -17,7 +17,7 @@ import {Module} from "../core/module";
 import {forEach, isHostMethod} from "../core/util";
 import * as dom from '../core/dom';
 import {DomPosition, arrayContains as contains} from '../core/dom';
-import {api} from "../core/index";
+import * as api from "../core/index";
 
 import * as log4javascript from "log4javascript";
 

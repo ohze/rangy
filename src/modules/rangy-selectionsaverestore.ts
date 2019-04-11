@@ -16,8 +16,8 @@
 import {Module} from "../core/module";
 import * as dom from "../core/dom";
 import {removeNode} from "../core/dom";
-import {selectionHasExtend} from "../core/wrappedselection";
-import {api} from "../core/index";
+import * as api from "../core/index";
+import {selectionHasExtend} from "../core/index";
 
 const module = new Module("SaveRestore", ["WrappedSelection"]);
 

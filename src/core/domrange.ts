@@ -12,7 +12,8 @@ import {
     splitDataNode
 } from "./dom";
 //domrange, wrappedrange, wrappedselection are circular depend on each other
-import {createRange, getSelection} from "./internal";
+import {createRange} from "./wrappedrange";
+import {getSelection} from "./wrappedselection";
 
 import * as log4javascript from "log4javascript";
 

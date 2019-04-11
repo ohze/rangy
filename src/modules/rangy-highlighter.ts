@@ -12,9 +12,8 @@
 // import {Module} from "../core/module";
 import {forEach} from "../core/util";
 import {getBody, arrayContains as contains} from '../core/dom';
-import {WrappedRange} from "../core/wrappedrange";
-import {WrappedSelection} from "../core/wrappedselection";
-import {api} from "../core/index";
+import * as api from "../core/index";
+import {WrappedRange, WrappedSelection} from "../core/index";
 
 // const module = new Module("Highlighter", ["ClassApplier"]);
 

@@ -14,7 +14,7 @@
  */
 import {WrappedSelection as SelProto} from "../core/wrappedselection";
 import {DomRange as RangeProto} from "../core/domrange";
-import {api} from "../core/index";
+import * as api from "../core/index";
 
 // const module = new Module("Util", ["WrappedSelection"]);
 

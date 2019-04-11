@@ -20,8 +20,12 @@ const replacePlugin = replace({
     ]
 });
 
+const resolvePlugin = resolve();
+
 function moduleConfig(file) {
-    const isCore = file.indexOf('/core/') === -1;
+    const isCore = file.startsWith('core/');
+    const esFileExt = isCore? 'esm.js' : 'js';
+    const plugins = isCore? [resolvePlugin] : [];
     return {
         input: [`./tscOut/${file}.js`],
         external: (id, parentId, isResolved) => {
@@ -30,10 +34,11 @@ function moduleConfig(file) {
         },
         output: [
             { file: `./lib/${file}.cjs.js`, format: 'cjs' },
-            { file: `./lib/${file}.esm.js`, format: 'es' },
+            { file: `./lib/${file}.${esFileExt}`, format: 'es' },
         ],
         plugins: [
             replacePlugin,
+            ...plugins,
         ]
     }
 }
@@ -60,7 +65,7 @@ export default [
         plugins: [
             // typescript(),
             replacePlugin,
-            resolve(),
+            resolvePlugin,
             commonjs()
         ],
     },
