@@ -28,6 +28,7 @@
         "url": "https://github.com/timdown/rangy.git"
     },
     "scripts": {
+        "test": "jest",
         "tsc": "tsc",
         "rollup": "rollup -c"
     },
@@ -38,10 +39,11 @@
         "lib": "./lib"
     },
     "dependencies": {
-        "core-js": "^3.0.0",
-        "log4javascript": "^1.4.15"
+        "core-js": "^3.0.0"
     },
     "devDependencies": {
+        "jest": "^24.7.1",
+        "log4javascript": "^1.4.15",
         "rollup": "^1.8.0",
         "rollup-plugin-commonjs": "^9.3.4",
         "rollup-plugin-node-resolve": "^4.0.1",
