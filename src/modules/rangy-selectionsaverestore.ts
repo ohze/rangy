@@ -13,11 +13,10 @@
  * Build date: %%build:date%%
  */
 
-import {Module} from "../core/module";
-import * as dom from "../core/dom";
-import {removeNode} from "../core/dom";
 import * as api from "../core/index";
-import {selectionHasExtend} from "../core/index";
+import {Module, dom, selectionHasExtend} from "../core/index";
+
+const removeNode = dom.removeNode;
 
 const module = new Module("SaveRestore", ["WrappedSelection"]);
 

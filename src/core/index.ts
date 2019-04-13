@@ -10,20 +10,18 @@
 import 'core-js/features/object/assign';
 
 export * from "./api";
+
 import * as util from "./util";
 export {util};
 
+export * from "./module";
 export * from "./DOMException";
+
 import * as dom from "./dom";
 export {dom};
 
-export * from "./domrange";
-
-export * from "./wrappedrange";
-import {shimCreateRange} from "./wrappedrange";
-
-export * from "./wrappedselection";
-import {shimGetSelection} from "./wrappedselection";
+export * from "./internal";
+import {shimCreateRange, shimGetSelection} from "./internal";
 
 export function shim(win?) {
     win = win || window;

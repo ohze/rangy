@@ -12,9 +12,11 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-import {WrappedSelection as SelProto} from "../core/wrappedselection";
-import {DomRange as RangeProto} from "../core/domrange";
 import * as api from "../core/index";
+import {
+    WrappedSelection as SelProto,
+    DomRange as RangeProto
+} from "../core/index";
 
 // const module = new Module("Util", ["WrappedSelection"]);
 

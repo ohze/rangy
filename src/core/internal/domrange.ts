@@ -1,5 +1,5 @@
-import {Constructor} from "./util";
-import * as dom from './dom';
+import {Constructor} from "../util";
+import * as dom from '../dom';
 import {
     arrayContains,
     comparePoints,
@@ -10,8 +10,8 @@ import {
     isCharacterDataNode,
     isOrIsAncestorOf, removeNode,
     splitDataNode
-} from "./dom";
-//domrange, wrappedrange, wrappedselection are circular depend on each other
+} from "../dom";
+
 import {createRange} from "./wrappedrange";
 import {getSelection} from "./wrappedselection";
 

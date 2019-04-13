@@ -1,14 +1,13 @@
-import {Module} from "./module";
-import {config, features} from "./api";
-import {DOMException} from "./DOMException";
+import {Module} from "../module";
+import {config, features} from "../api";
+import {DOMException} from "../DOMException";
 
-import * as util from "./util";
-import {Constructor, isHostMethod} from "./util";
+import * as util from "../util";
+import {Constructor, isHostMethod} from "../util";
 
-import * as dom from "./dom";
-import {DomPosition, getDocument, getBody} from "./dom";
+import * as dom from "../dom";
+import {DomPosition, getDocument, getBody} from "../dom";
 
-//domrange, wrappedrange, wrappedselection are circular depend on each other
 import {DomRange, rangesEqual} from "./domrange";
 import {createNativeRange, createRange, WrappedRange} from "./wrappedrange";
 

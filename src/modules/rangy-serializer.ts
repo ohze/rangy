@@ -13,12 +13,14 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-/* build:modularizeWithRangyDependency */
 
 import {crc32} from "./crc32";
-import {Module} from "../core/module";
-import * as dom from "../core/dom";
+
+// don't directly import modules from ../core/<module-path>
+// (only import ../core/index)
+// otherwise rollup.config.js/ rangyModulesConfigs will failed!
 import * as api from "../core/index";
+import {dom, Module} from "../core/index";
 
 const module = new Module("Serializer", ["WrappedSelection"]);
 

@@ -9,11 +9,11 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-// import {Module} from "../core/module";
-import {forEach} from "../core/util";
-import {getBody, arrayContains as contains} from '../core/dom';
 import * as api from "../core/index";
-import {WrappedRange, WrappedSelection} from "../core/index";
+import {WrappedRange, WrappedSelection, dom} from "../core/index";
+const contains = dom.arrayContains,
+    getBody = dom.getBody,
+    forEach = api.util.forEach;
 
 // const module = new Module("Highlighter", ["ClassApplier"]);
 

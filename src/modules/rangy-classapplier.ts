@@ -13,11 +13,12 @@
  * Build date: %%build:date%%
  */
 
-import {Module} from "../core/module";
-import {forEach, isHostMethod} from "../core/util";
-import * as dom from '../core/dom';
-import {DomPosition, arrayContains as contains} from '../core/dom';
 import * as api from "../core/index";
+import {dom, Module} from "../core/index";
+const DomPosition = dom.DomPosition,
+    contains = dom.arrayContains,
+    forEach = api.util.forEach,
+    isHostMethod = api.util.isHostMethod;
 
 import * as log4javascript from "log4javascript";
 
@@ -526,6 +527,22 @@ class Merge {
     // TODO: Populate this with every attribute name that corresponds to a property with a different name. Really??
     var attrNamesForProperties = {};
 
+export const util = {
+    hasClass,
+    addClass,
+    removeClass,
+    getClass,
+    hasSameClasses: haveSameClasses,
+    hasAllClasses,
+    replaceWithOwnChildren: replaceWithOwnChildrenPreservingPositions,
+    elementsHaveSameNonClassAttributes,
+    elementHasNonClassAttributes,
+    splitNodeAt,
+    isEditableElement,
+    isEditingHost,
+    isEditable
+};
+
 interface ClassApplierOpts {
     elementTagName?: string;
     tagNames?: string | string[];
@@ -542,7 +559,7 @@ export class ClassApplier {
     elementSortedClassName: string;
 
     constructor(public className: string,
-                options: ClassApplierOpts|boolean,
+                options?: ClassApplierOpts|boolean,
                 tagNames?: string | string[]) {
         var normalize, i, len, propName, applier = this;
         applier.cssClass = className; // cssClass property is for backward compatibility
@@ -1115,31 +1132,12 @@ export class ClassApplier {
         }
 
         detach() {}
+    /** @deprecated pls directly import & use the exported member of this module */
+    static util = util;
 }
 
-export function createClassApplier(className, options, tagNames) {
+export function createClassApplier(className, options?, tagNames?) {
         return new ClassApplier(className, options, tagNames);
     }
-
-export const util = {
-    hasClass,
-    addClass,
-    removeClass,
-    getClass,
-    hasSameClasses: haveSameClasses,
-    hasAllClasses,
-    replaceWithOwnChildren: replaceWithOwnChildrenPreservingPositions,
-    elementsHaveSameNonClassAttributes,
-    elementHasNonClassAttributes,
-    splitNodeAt,
-    isEditableElement,
-    isEditingHost,
-    isEditable
-};
-
-// @deprecated pls directly import & use the exported member of this module
-Object.assign(ClassApplier, {
-    util: util,
-});
 
 export {ClassApplier as CssClassApplier};

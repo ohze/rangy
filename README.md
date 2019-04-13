@@ -1,32 +1,37 @@
-Rangy
+Rangy2
 =====
 
 A cross-browser JavaScript range and selection library.
 
-The current version is version 1.3.0.
+## Compare to [rangy](https://github.com/timdown/rangy) 1.x
++ migrated to typescript
+    - so, the definition types is always updated
++ use typescript's module (import / export) instead of the complex `rangy.createModule` logic
++ remove TextRange & [inactive](https://github.com/timdown/rangy/tree/master/src/modules/inactive) modules
+    - if you use those modules, please migrate to rangy2 & create a pull request.
++ use [rollup](https://rollupjs.org) instead of the
+  [old complex manually with text-replacing building logic](https://github.com/timdown/rangy/blob/master/builder/build.js)
++ don't support too-outdated browser: IE < 9
+    - removed many outdated feature testing logic (for too-outdated browser)
++ migrated testing code to [QUnit](https://qunitjs.com/)
+    - dont use [jest](https://jestjs.io/) because we need test in android/ ios
++ remove `rangy.init` (& `rangy.addInitListener`)
+    - rangy is "initialized" even before DOM ready!
+    - So, many bugs like [326](https://github.com/timdown/rangy/issues/326),
+      [321](https://github.com/timdown/rangy/issues/321) is auto-fixed!
 
-The latest source code and releases are on [GitHub](../../releases).
-
-## Bower
-
-There is now an official Rangy package for Bower with Rangy 1.2 and 1.3 versions, called `rangy`.
-
-## AMD
-
-Rangy 1.3 has AMD support.
-
-## NPM
-
-There is an official Rangy module on NPM called [`rangy`](https://www.npmjs.org/package/rangy).
+## Install
+```bash
+yarn add rangy2
+```
 
 ## Documentation
 
 Documentation is in [the GitHub wiki](https://github.com/timdown/rangy/wiki). 
 
-## Build
+## Dev guide
 ```bash
-cd builder
 yarn install
-cd ..
-node builder/build.js
+yarn run dev
 ```
++ test by opening test/*.html in a desktop or mobile browser

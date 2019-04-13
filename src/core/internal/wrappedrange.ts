@@ -1,8 +1,8 @@
-import {isHostMethod} from "./util";
-import {onDocReady} from './api';
-import {Module} from "./module";
-import {getBody, getContentDocument, getNodeLength} from './dom';
-//domrange, wrappedrange, wrappedselection are circular depend on each other
+import {isHostMethod} from "../util";
+import {onDocReady} from '../api';
+import {Module} from "../module";
+import {getBody, getContentDocument, getNodeLength} from '../dom';
+
 import {DomRange, createPrototypeRange, rangeProperties, IterableRangeBase} from "./domrange";
 
 import * as log4javascript from "log4javascript";
@@ -220,7 +220,7 @@ onDocReady(docReadyHandler);
         return new WrappedRange(createNativeRange(doc));
     };
 
-    export function createRangyRange(doc) {
+    export function createRangyRange(doc?) {
         doc = getContentDocument(doc, module, "createRangyRange");
         return new DomRange(doc);
     };

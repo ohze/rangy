@@ -2,72 +2,81 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
+import tsconfig from './tsconfig.json';
 import replace from 'rollup-plugin-re';
+import path from 'path';
 
-//remove logging
-const replacePlugin = replace({
-    exclude: 'node_modules/**',
-    // ... do replace before commonjs
-    patterns: [
-        {
-            // regexp match with resolved path
-            // match: /tscOut/,
-            // string or regexp
-            test: /(.*log4javascript.*)|(\s*(\/\/\s*)?log\.(trace|debug|info|warn|error|fatal|time|timeEnd|group|groupEnd).+)/g,
-            // string or function to replaced with
-            replace: '',
-        }
-    ]
-});
-
-const resolvePlugin = resolve();
-
-function moduleConfig(file) {
-    const isCore = file.startsWith('core/');
-    const esFileExt = isCore? 'esm.js' : 'js';
-    const plugins = isCore? [resolvePlugin] : [];
+const buildVars = (function() {
+    var date = new Date();
+    var month = "January,February,March,April,May,June,July,August,September,October,November,December".split(",")[date.getMonth()];
     return {
-        input: [`./tscOut/${file}.js`],
-        external: (id, parentId, isResolved) => {
-            //console.log(id, parentId, isResolved);
-            return !isCore;
-        },
-        output: [
-            { file: `./lib/${file}.cjs.js`, format: 'cjs' },
-            { file: `./lib/${file}.${esFileExt}`, format: 'es' },
-        ],
-        plugins: [
-            replacePlugin,
-            ...plugins,
+        "%%build:version%%": pkg.version,
+        "%%build:date%%": date.getDate() + " " + month + " " + date.getFullYear(),
+        "%%build:year%%,": date.getFullYear() + ','
+    };
+})();
+
+const plugins = [
+    replace({
+        exclude: 'node_modules/**',
+        replaces: buildVars,
+        patterns: [ //remove logging
+            {
+                test: /(.*log4javascript.*)|(\s*(\/\/\s*)?log\.(trace|debug|info|warn|error|fatal|time|timeEnd|group|groupEnd).+)/g,
+                replace: '',
+            }
         ]
+    }),
+    resolve(),
+    commonjs(),
+    // typescript(),
+];
+
+const inDir = tsconfig.compilerOptions.outDir;
+const outDir = './lib';
+
+const rangyModulesConfigs = (function(){
+    function config(globalName, file){
+        return {
+            input: [`${inDir}/modules/${file}`],
+            external: (id, parentId) => {
+                if (parentId) {
+                    console.log('import: ' + path.relative(inDir, parentId) + ' <- ' + id);
+                }
+                return id === "../core/index";
+            },
+            output: {
+                format: 'umd',
+                name: globalName,
+                file: `${outDir}/modules/${file}`,
+                globals: (id) => 'rangy',
+                // sourcemap: true, TODO
+            },
+            plugins,
+        }
     }
-}
 
-const moduleConfigs = [
-    'core/index',
-    'modules/rangy-classapplier',
-    'modules/rangy-highlighter',
-    'modules/rangy-selectionsaverestore',
-    'modules/rangy-serializer',
-    'modules/rangy-util',
-].map(moduleConfig);
+    return [
+        ['rangyClassApplier', 'rangy-classapplier.js'],
+        ['rangyHighlighter', 'rangy-highlighter.js'],
+        ['rangySaveRestore', 'rangy-selectionsaverestore.js'],
+        ['rangySerializer', 'rangy-serializer.js'],
+        ['rangyUtil', 'rangy-util.js'],
+    ].map((name2file) => config(...name2file));
+})();
 
-// see https://github.com/rollup/rollup-starter-lib/blob/master/rollup.config.js
-export default [
-    {
-        input: ["./tscOut/core/index.js"],
-        output: {
-            format: 'umd',
-            name: 'rangy',
-            file: pkg.browser,
-            // dir: './lib'
-        },
-        plugins: [
-            // typescript(),
-            replacePlugin,
-            resolvePlugin,
-            commonjs()
-        ],
+const coreConfig = {
+    input: [`${inDir}/core/index.js`],
+    output: {
+        format: 'umd',
+        name: 'rangy',
+        file: `${outDir}/core/index.js`,
+        // sourcemap: true, TODO
     },
-    ...moduleConfigs
+    plugins,
+};
+
+export default [
+    coreConfig,
+    ...rangyModulesConfigs,
 ];
