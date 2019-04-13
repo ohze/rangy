@@ -1,21 +1,28 @@
 {
-    "name": "rangy",
+    "name": "rangy2",
     "description": "A cross-browser DOM range and selection library",
-    "version": "1.3.1-dev",
+    "version": "2.0.0",
     "author": {
         "name": "Tim Down",
         "email": "tim@timdown.co.uk",
         "url": "http://timdown.co.uk/"
     },
+    "contributors": [
+        {
+            "name": "Bui Viet Thanh",
+            "email": "thanhbv@sandinh.net",
+            "url": "https://github.com/ohze"
+        }
+    ],
     "keywords": [
         "range",
         "selection",
         "caret",
         "DOM"
     ],
-    "homepage": "https://github.com/timdown/rangy",
+    "homepage": "https://github.com/ohze/rangy",
     "bugs": {
-        "url": "https://github.com/timdown/rangy/issues"
+        "url": "https://github.com/ohze/rangy/issues"
     },
     "licenses": [
         {
@@ -25,7 +32,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/timdown/rangy.git"
+        "url": "https://github.com/ohze/rangy.git"
     },
     "scripts": {
         "test": "echo 'pls browse test/*.html for testing'",
