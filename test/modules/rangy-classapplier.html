@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>QUnit Example</title>
+    <script src="../../node_modules/qunit/qunit/qunit.js"></script>
+    <link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css">
+    <script src="../../node_modules/requirejs/require.js"></script>
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script>
+    QUnit.config.autostart = false;
+    requirejs(['./rangy-classapplier.test.js']);
+</script>
+</body>
+</html>
