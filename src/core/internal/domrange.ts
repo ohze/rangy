@@ -194,7 +194,7 @@ export function getRangeDocument(range) {
         return nodes;
     }
 
-export function inspect(range) {
+export function rangeInspect(range) {
         var name = (typeof range.getName == "undefined") ? "Range" : range.getName();
         return "[" + name + "(" + dom.inspectNode(range.startContainer) + ":" + range.startOffset + ", " +
                 dom.inspectNode(range.endContainer) + ":" + range.endOffset + ")]";
@@ -884,7 +884,7 @@ function createDomRangeBase<TBase extends Constructor<RangeBaseMixinT>>(Base: TB
         }
 
         inspect() {
-            return inspect(this);
+            return rangeInspect(this);
         }
 
         detach() {
@@ -1268,12 +1268,12 @@ export type DomRange = InstanceType<typeof DomRange>;
 // export class DomRange extends createPrototypeRange(RangeBase, updateBoundaries){};
 
 // @deprecated pls directly import & use the exported member of this module
-Object.assign(DomRange, {
+Object.assign && Object.assign(DomRange, {
     rangeProperties,
     RangeIterator,
     copyComparisonConstants,
     createPrototypeRange,
-    inspect,
+    inspect: rangeInspect,
     toHtml: rangeToHtml,
     getRangeDocument,
     rangesEqual,

@@ -45,9 +45,7 @@
     "directories": {
         "lib": "./lib"
     },
-    "dependencies": {
-        "core-js": "^3.0.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/qunit": "^2.5.4",
         "log4javascript": "^1.4.15",

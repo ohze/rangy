@@ -7,8 +7,6 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-import 'core-js/features/object/assign';
-
 export * from "./api";
 
 import * as util from "./util";
