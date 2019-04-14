@@ -1272,7 +1272,7 @@ Object.assign(DomRange, {
     rangeProperties,
     RangeIterator,
     copyComparisonConstants,
-    createPrototypeRange: createDomRange,
+    createPrototypeRange,
     inspect,
     toHtml: rangeToHtml,
     getRangeDocument,
