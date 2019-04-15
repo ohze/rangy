@@ -210,7 +210,7 @@ function docReadyHandler(): void {
 
 onDocReady(docReadyHandler);
 
-            export function createNativeRange(doc) {
+            export function createNativeRange(doc?) {
                 doc = getContentDocument(doc, module, "createNativeRange");
                 return doc.createRange();
             };
