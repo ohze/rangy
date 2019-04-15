@@ -12,8 +12,7 @@
 import * as api from "../core/index";
 import {WrappedRange, WrappedSelection, dom} from "../core/index";
 const contains = dom.arrayContains,
-    getBody = dom.getBody,
-    forEach = api.util.forEach;
+    getBody = dom.getBody;
 
 // const module = new Module("Highlighter", ["ClassApplier"]);
 
@@ -278,9 +277,9 @@ export class Highlighter {
         getIntersectingHighlights(ranges) {
             // Test each range against each of the highlighted ranges to see whether they overlap
             var intersectingHighlights = [], highlights = this.highlights;
-            forEach(ranges, function(range) {
+            ranges.forEach(function(range) {
                 //var selCharRange = converter.rangeToCharacterRange(range);
-                forEach(highlights, function(highlight) {
+                highlights.forEach(function(highlight) {
                     if (range.intersectsRange( highlight.getRange() ) && !contains(intersectingHighlights, highlight)) {
                         intersectingHighlights.push(highlight);
                     }
@@ -352,7 +351,7 @@ export class Highlighter {
 
                             // Remove existing highlights, keeping the unselected parts
                             if (splitHighlight) {
-                                forEach(highlightCharRange.getComplements(charRange), function(rangeToAdd) {
+                                highlightCharRange.getComplements(charRange).forEach(function(rangeToAdd) {
                                     highlightsToKeep.push( new Highlight(doc, rangeToAdd, highlights[j].classApplier, converter, null, containerElementId) );
                                 });
                             }
@@ -380,13 +379,13 @@ export class Highlighter {
             }
 
             // Remove the old highlights
-            forEach(highlightsToRemove, function(highlightToRemove) {
+            highlightsToRemove.forEach(function(highlightToRemove) {
                 highlightToRemove.unapply();
             });
 
             // Apply new highlights
             var newHighlights = [];
-            forEach(highlights, function(highlight) {
+            highlights.forEach(function(highlight) {
                 if (!highlight.applied) {
                     highlight.apply();
                     newHighlights.push(highlight);
@@ -414,7 +413,7 @@ export class Highlighter {
                 containerElementRange.selectNodeContents(containerElement);
             }
 
-            forEach(ranges, function(range) {
+            ranges.forEach(function(range) {
                 var scopedRange = containerElement ? containerElementRange.intersection(range) : range;
                 selCharRanges.push( converter.rangeToCharacterRange(scopedRange, containerElement || getBody(range.getDocument())) );
             });
@@ -450,7 +449,7 @@ export class Highlighter {
 
             // Create an array of selected character ranges
             var selCharRanges = [];
-            forEach(serializedSelection, function(rangeInfo) {
+            serializedSelection.forEach(function(rangeInfo) {
                 selCharRanges.push( CharacterRange.fromCharacterRange(rangeInfo.characterRange) );
             });
 
@@ -503,7 +502,7 @@ export class Highlighter {
 
             serializedHighlights = ["type:" + serializedType];
 
-            forEach(highlights, function(highlight) {
+            highlights.forEach(function(highlight) {
                 var characterRange = highlight.characterRange;
                 var containerElement;
 

@@ -17,7 +17,6 @@ import * as api from "../core/index";
 import {dom, Module} from "../core/index";
 const DomPosition = dom.DomPosition,
     contains = dom.arrayContains,
-    forEach = api.util.forEach,
     isHostMethod = api.util.isHostMethod;
 
 import * as log4javascript from "log4javascript";
@@ -171,7 +170,7 @@ const module = new Module("ClassApplier", ["WrappedSelection"]);
         var oldParent = node.parentNode;
         var oldIndex = dom.getNodeIndex(node);
 
-        forEach(positionsToPreserve, function(position) {
+        positionsToPreserve.forEach(function(position) {
             movePosition(position, oldParent, oldIndex, newParent, newIndex);
         });
 
@@ -190,7 +189,7 @@ const module = new Module("ClassApplier", ["WrappedSelection"]);
         var oldParent = node.parentNode;
         var oldIndex = dom.getNodeIndex(node);
 
-        forEach(positionsToPreserve, function(position) {
+        positionsToPreserve.forEach(function(position) {
             movePositionWhenRemovingNode(position, oldParent, oldIndex);
         });
 
@@ -471,7 +470,7 @@ class Merge {
                 var firstTextNodeIndex = dom.getNodeIndex(firstTextNode);
                 var textParts = [], combinedTextLength = 0, textNode, parent;
                 const len = textNodes.length;
-                forEach(textNodes, function(textNode, i) {
+                textNodes.forEach(function(textNode, i) {
                     parent = textNode.parentNode;
                     if (i > 0) {
                         parent.removeChild(textNode);
@@ -479,7 +478,7 @@ class Merge {
                             dom.removeNode(parent);
                         }
                         if (positionsToPreserve) {
-                            forEach(positionsToPreserve, function(position) {
+                            positionsToPreserve.forEach(function(position) {
                                 // Handle case where position is inside the text node being merged into a preceding node
                                 if (position.node == textNode) {
                                     position.node = firstTextNode;
@@ -514,7 +513,7 @@ class Merge {
 
         toString() {
             var textParts = [];
-            forEach(this.textNodes, function(textNode, i) {
+            this.textNodes.forEach(function(textNode, i) {
                 textParts[i] = "'" + textNode.data + "'";
             });
             return "[Merge(" + textParts.join(",") + ")]";
@@ -743,7 +742,7 @@ export class ClassApplier {
             var precedingTextNode;
 
             // Check for every required merge and create a Merge object for each
-            forEach(textNodes, function(textNode) {
+            textNodes.forEach(function(textNode) {
                 precedingTextNode = getPreviousMergeableTextNode(textNode, !isUndo);
                 log.debug("Checking for merge. text node: " + textNode.data + ", parent: " + dom.inspectNode(textNode.parentNode) + ", preceding: " + dom.inspectNode(precedingTextNode));
                 if (precedingTextNode) {
@@ -886,7 +885,7 @@ export class ClassApplier {
             var rangesToPreserve = [range];
             var positionsToPreserve = getRangeBoundaries(rangesToPreserve);
 
-            forEach(nodesToRemove, function(node) {
+            nodesToRemove.forEach(function(node) {
                 log.debug("Removing empty container " + dom.inspectNode(node));
                 removePreservingPositions(node, positionsToPreserve);
             });
@@ -954,7 +953,7 @@ export class ClassApplier {
             var textNodes = getEffectiveTextNodes(range);
 
             if (textNodes.length) {
-                forEach(textNodes, function(textNode) {
+                textNodes.forEach(function(textNode) {
                     log.info("textnode " + textNode.data + " is ignorable: " + applier.isIgnorableWhiteSpaceNode(textNode));
                     if (!applier.isIgnorableWhiteSpaceNode(textNode) && !applier.getSelfOrAncestorWithClass(textNode) &&
                             applier.isModifiable(textNode)) {
@@ -974,7 +973,7 @@ export class ClassApplier {
             // Apply classes to any appropriate empty elements
             var emptyElements = applier.getEmptyElements(range);
 
-            forEach(emptyElements, function(el) {
+            emptyElements.forEach(function(el) {
                 addClass(el, applier.className);
             });
         }
@@ -1045,7 +1044,7 @@ export class ClassApplier {
             // Remove class from any appropriate empty elements
             var emptyElements = applier.getEmptyElements(range);
 
-            forEach(emptyElements, function(el) {
+            emptyElements.forEach(function(el) {
                 removeClass(el, applier.className);
             });
         }

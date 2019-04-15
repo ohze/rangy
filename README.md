@@ -21,8 +21,9 @@ A cross-browser JavaScript range and selection library.
       [321](https://github.com/timdown/rangy/issues/321) is auto-fixed!
 
 ## Guide to migrate from rangy 1.x to rangy2
++ removed `rangy.util.{extend, toArray, `[forEach](http://kangax.github.io/compat-table/es5/#test-Array.prototype.forEach)`}`
 + if you want support IE, please shim [Object.assign](http://kangax.github.io/compat-table/es6/#test-Object_static_methods_Object.assign)
-  , ex, shim with [core-js](https://www.npmjs.com/package/core-js)
+  ex, shim with [core-js](https://www.npmjs.com/package/core-js)
 
 ## Install
 ```bash
