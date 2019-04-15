@@ -16,7 +16,6 @@
 import * as api from "../core/index";
 import {dom, Module} from "../core/index";
 const DomPosition = dom.DomPosition,
-    contains = dom.arrayContains,
     isHostMethod = api.util.isHostMethod;
 
 import * as log4javascript from "log4javascript";
@@ -261,7 +260,7 @@ const module = new Module("ClassApplier", ["WrappedSelection"]);
     function elementHasNonClassAttributes(el, exceptions) {
         for (var i = 0, len = el.attributes.length, attrName; i < len; ++i) {
             attrName = el.attributes[i].name;
-            if ( !(exceptions && contains(exceptions, attrName)) && el.attributes[i].specified && attrName != "class") {
+            if ( !(exceptions && exceptions.includes(attrName)) && el.attributes[i].specified && attrName != "class") {
                 return true;
             }
         }
@@ -697,7 +696,7 @@ export class ClassApplier {
         }
 
         appliesToElement(el) {
-            return contains(this.tagNames, el.tagName.toLowerCase());
+            return this.tagNames.includes(el.tagName.toLowerCase());
         }
 
         getEmptyElements(range) {
@@ -1123,7 +1122,7 @@ export class ClassApplier {
             var applier = this;
             range.getNodes([3], function(textNode) {
                 var el = applier.getSelfOrAncestorWithClass(textNode);
-                if (el && !contains(elements, el)) {
+                if (el && !elements.includes(el)) {
                     elements.push(el);
                 }
             });

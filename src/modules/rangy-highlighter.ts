@@ -11,8 +11,7 @@
  */
 import * as api from "../core/index";
 import {WrappedRange, WrappedSelection, dom} from "../core/index";
-const contains = dom.arrayContains,
-    getBody = dom.getBody;
+const getBody = dom.getBody;
 
 // const module = new Module("Highlighter", ["ClassApplier"]);
 
@@ -263,7 +262,7 @@ export class Highlighter {
         removeHighlights(highlights) {
             for (var i = 0, len = this.highlights.length, highlight; i < len; ++i) {
                 highlight = this.highlights[i];
-                if (contains(highlights, highlight)) {
+                if (highlights.includes(highlight)) {
                     highlight.unapply();
                     this.highlights.splice(i--, 1);
                 }
@@ -280,7 +279,7 @@ export class Highlighter {
             ranges.forEach(function(range) {
                 //var selCharRange = converter.rangeToCharacterRange(range);
                 highlights.forEach(function(highlight) {
-                    if (range.intersectsRange( highlight.getRange() ) && !contains(intersectingHighlights, highlight)) {
+                    if (range.intersectsRange( highlight.getRange() ) && !intersectingHighlights.includes(highlight)) {
                         intersectingHighlights.push(highlight);
                     }
                 });

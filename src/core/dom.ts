@@ -23,14 +23,6 @@ const module = new Module("DomUtil", []);
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    // rangy2 dont test this
-    // Removed use of indexOf because of a bizarre bug in Opera that is thrown in one of the Acid3 tests. I haven't been
-    // able to replicate it outside of the test. The bug is that indexOf returns -1 when called on an Array that
-    // contains just the document as a single element and the value searched for is the document.
-export function arrayContains(arr, val) {
-    return arr.indexOf(val) > -1;
-}
-
     // Opera 11 puts HTML elements in the null namespace, it seems, and IE 7 has undefined namespaceURI
 export function isHtmlNamespace(node) {
         var ns;
@@ -70,7 +62,7 @@ export function getCommonAncestor(node1, node2) {
         }
 
         for (n = node2; n; n = n.parentNode) {
-            if (arrayContains(ancestors, n)) {
+            if (ancestors.includes(n)) {
                 return n;
             }
         }

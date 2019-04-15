@@ -1,7 +1,6 @@
 import {Constructor} from "../util";
 import * as dom from '../dom';
 import {
-    arrayContains,
     comparePoints,
     DomPosition, getClosestAncestorIn,
     getDocument,
@@ -351,7 +350,7 @@ export class RangeIterator extends RangeIteratorBase<IterableRange> {
             var t, n = selfIsAncestor ? node : node.parentNode;
             while (n) {
                 t = n.nodeType;
-                if (arrayContains(nodeTypes, t)) {
+                if (nodeTypes.includes(t)) {
                     return n;
                 }
                 n = n.parentNode;
@@ -372,7 +371,7 @@ export class RangeIterator extends RangeIteratorBase<IterableRange> {
     }
 
     function assertValidNodeType(node, invalidTypes) {
-        if (!arrayContains(invalidTypes, node.nodeType)) {
+        if (!invalidTypes.includes(node.nodeType)) {
             throw new DOMException("INVALID_NODE_TYPE_ERR");
         }
     }
