@@ -17,7 +17,7 @@ QUnit.module("Range");
 
     var dom = rangy.dom;
 
-    QUnit.test("Iterate nodes (iterator)", function(t) {
+    QUnit.skip("Iterate nodes (iterator)", function(t) {
         var recursiveNodes, nonRecursiveNodes, iteratorNodes;
         iteratorNodes = [];
         var it = dom.createIterator(testNode), node;
