@@ -13,8 +13,8 @@
  * Build date: %%build:date%%
  */
 
-import * as api from "../core/index";
-import {dom, Module} from "../core/index";
+import * as api from "rangy2";
+import {dom, Module} from "rangy2";
 const DomPosition = dom.DomPosition,
     isHostMethod = api.util.isHostMethod;
 
@@ -525,7 +525,7 @@ class Merge {
     // TODO: Populate this with every attribute name that corresponds to a property with a different name. Really??
     var attrNamesForProperties = {};
 
-export const util = {
+const util = {
     hasClass,
     addClass,
     removeClass,
@@ -1130,7 +1130,6 @@ export class ClassApplier {
         }
 
         detach() {}
-    /** @deprecated pls directly import & use the exported member of this module */
     static util = util;
 }
 

@@ -1,12 +1,11 @@
 {
-  "compilerOptions": {
-    "outDir": "./tscOut",
-    "target": "es2015",
-    "declaration": true,
-    "declarationDir": "./lib",
-    "moduleResolution": "node"
-  },
-  "include": [
-    "./src/**/*.ts"
-  ]
+  "references": [
+    { "path": "./src/core" },
+    { "path": "./src/classapplier" },
+    { "path": "./src/highlighter" },
+    { "path": "./src/selectionsaverestore" },
+    { "path": "./src/serializer" },
+    { "path": "./src/util" }
+  ],
+  "include": []
 }

@@ -13,8 +13,8 @@
  * Build date: %%build:date%%
  */
 
-import * as api from "../core/index";
-import {Module, dom, selectionHasExtend} from "../core/index";
+import * as api from "rangy2";
+import {Module, dom, selectionHasExtend} from "rangy2";
 
 const removeNode = dom.removeNode;
 

@@ -4,3 +4,12 @@ node_modules
 /tscOut/
 /.rpt2_cache/
 /lib/
+/src/*/tsconfig.json
+/scripts/*.js
+/src/**/*.js
+*.js.map
+*.ts.map
+*.tsbuildinfo
+*.test.js
+*.test.iife.js
+*.test.d.ts

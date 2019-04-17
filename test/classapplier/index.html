@@ -13,7 +13,18 @@
 <div id="qunit-fixture"></div>
 <script>
     QUnit.config.autostart = false;
-    requirejs(['./rangy-classapplier.test.js']);
+    var paths = {};
+    var dist = "../../dist/";
+    requirejs.config({
+        baseUrl: '../../dist/',
+        paths: {
+            "rangy2": "core/bundles/index.umd",
+            "rangy-classapplier": "classapplier/bundles/index.umd"
+        }
+    });
+    requirejs(['./index.test.js'], function () {
+        QUnit.start();
+    });
 </script>
 </body>
 </html>

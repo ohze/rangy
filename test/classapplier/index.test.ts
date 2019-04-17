@@ -1,10 +1,10 @@
-import {ClassApplier, util, createClassApplier} from '../../lib/modules/rangy-classapplier';
-import * as rangy from '../../lib/core';
+import {ClassApplier, createClassApplier} from 'rangy-classapplier';
+import * as rangy from 'rangy2';
 
 QUnit.module("Class Applier module tests");
 
 QUnit.test('Editable tests', (t) => {
-    t.ok(ClassApplier.util);
+    const util = ClassApplier.util;
 
     var testDiv = document.getElementById("qunit-fixture");
     testDiv.innerHTML = '<div>One<div contenteditable="true">Two<span contenteditable="false">three</span></div></div>';
@@ -1026,4 +1026,3 @@ if (rangy.features.selectionSupportsMultipleRanges) {
     });
 }
 */
-QUnit.start();
