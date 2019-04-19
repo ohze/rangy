@@ -1,4 +1,4 @@
-import { writeFileSync, copyFileSync, statSync } from 'fs';
+import { writeFileSync, copyFileSync, statSync, mkdirSync } from 'fs';
 import { resolve, basename } from 'path';
 import * as packageJson from '../package.json';
 import {modules, projectRoot} from "./util";
@@ -12,6 +12,7 @@ function main() {
 
   function process(name: string) {
     const distPath = resolve(projectRoot, 'dist', name);
+    mkdirSync(distPath, {recursive: true});
     const distPackageJson = createDistPackageJson(packageJson, name);
 
     const cpFiles = ['README.md', 'CHANGELOG.md', 'LICENSE', '.npmignore'].map(
