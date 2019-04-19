@@ -1,7 +1,7 @@
 {
     "name": "rangy2",
     "description": "A cross-browser DOM range and selection library",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": {
         "name": "Tim Down",
         "email": "tim@timdown.co.uk",
@@ -45,7 +45,9 @@
         "prebuild": "yarn run tsc:scripts",
         "build:src": "npm-run-all tsc:src rollup:src",
         "build:test": "npm-run-all --parallel tsc:test rollup:test",
-        "build": "npm-run-all --parallel build:* dist-prepare",
+        "build": "npm-run-all --parallel build:*",
+        "prerelease": "npm-run-all clean tsc:scripts --parallel build:* dist-prepare",
+        "release": "node scripts/publish.js",
         "watch:src": "TODO FORCE_COLOR=1 rollup -c --watch",
         "watch": "TODO run-p -l watch:types watch:js",
         "test": "echo 'pls browse test/*.html for testing'"
