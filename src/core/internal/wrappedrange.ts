@@ -99,8 +99,8 @@ export class WrappedRange extends createPrototypeRange(RangeBase, updateNativeRa
                     updateRangeProperties(this);
                 };
 
-            private static createBeforeAfterNodeSetter(name) {
-                    return function(node) {
+            private static createBeforeAfterNodeSetter(name: string) {
+                    return function(node: Node): void {
                         this.nativeRange[name](node);
                         updateRangeProperties(this);
                     };

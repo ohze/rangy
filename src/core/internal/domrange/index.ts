@@ -7,5 +7,6 @@ export {
     getRangeDocument,
     createPrototypeRange,
     DomRange,
+    RangeIterator,
     createRangyRange
 } from "./_";

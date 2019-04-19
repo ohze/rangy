@@ -662,7 +662,7 @@ export function createDomRangeP1<TBase extends Constructor<RangeP2 & RangeBase>>
 
         // in rangy1, this method is implement in wrappedselection.js
         // TODO declare in RangeP1Ex
-        select(direction?) {
+        select(this: RangyRangeEx, direction?): void {
             getSelection( this.getDocument() ).setSingleRange(this, direction);
         }
     }

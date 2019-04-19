@@ -17,7 +17,8 @@ export {
     getNativeSelection,
     isSelectionValid,
     getSelection,
-    Selection,
     WrappedSelection,
+    WrappedSelection as Selection, //alias
+    RangeIterator,
     shimGetSelection
 } from "./_";

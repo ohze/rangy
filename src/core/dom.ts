@@ -202,7 +202,7 @@ export function isWindow(obj): obj is Window {
 function isIframe(o): o is HTMLIFrameElement {
     return o.nodeType == 1 && o.tagName.toLowerCase() == "iframe"
 }
-export function getContentDocument(obj: Document | HTMLIFrameElement| Window, module: Module, methodName): Document {
+export function getContentDocument(obj: Document | HTMLIFrameElement| Window, module: Module, methodName: string): Document {
         var doc;
 
         if (!obj) {

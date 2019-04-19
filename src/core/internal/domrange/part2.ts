@@ -352,12 +352,6 @@ function createDomRangeP2<TBase extends Constructor<RangeBase>>(Base: TBase, bou
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-/** TODO remove comment
- * @requires call `Object.assign(R, comparisonConstants)` after call this function:
- *      `class R extends createPrototypeRange(..`
- * or
- *      `const R = createPrototypeRange(..`
- */
 export function createPrototypeRange<T extends RangeBase, TBase extends Constructor<T>>(
     Base: TBase, boundaryUpdater: BoundaryUpdater
 ): Constructor<RangyRangeEx & T> & TBase & ComparisonConstants {
@@ -375,24 +369,22 @@ export function createPrototypeRange<T extends RangeBase, TBase extends Construc
     return Object.assign(R12, comparisonConstants);
 }
 
-// TODO remove comment
-// we need this const to bypass TS2506: 'DomRange' is referenced directly or indirectly in it own base expression
-// export const _DomRange = createPrototypeRange(RangeBase, updateBoundaries);
-// export type DomRange = InstanceType<typeof DomRange>;
 export class DomRange extends createPrototypeRange(DomRangeBase, updateBoundaries) {
     static inspect = rangeInspect;
     static toHtml = rangeToHtml;
     static getRangeDocument = getRangeDocument;
     static rangesEqual = rangesEqual;
+    static rangeProperties = rangeProperties;
+    /** @deprecated use rangy.RangeIterator (umd) or better directly:
+     * `import {RangeIterator} from "rangy2"` */
+    static RangeIterator = RangeIterator;
+    /** @deprecated please replace by:
+     * `class C extends createPrototypeRange(..){..} Object.assign(C, comparisonConstants)` */
+    static copyComparisonConstants = copyComparisonConstants;
+    /** @deprecated use rangy.createPrototypeRange (umd) or better directly:
+     * `import {createPrototypeRange} from "rangy2"` */
+    static createPrototypeRange = createPrototypeRange;
 }
-
-// @deprecated pls directly import & use the exported member of this module
-Object.assign(DomRange, {
-    rangeProperties,
-    RangeIterator,
-    copyComparisonConstants,
-    createPrototypeRange,
-});
 
 export function createRangyRange(doc?) {
     doc = getContentDocument(doc, module, "createRangyRange");
