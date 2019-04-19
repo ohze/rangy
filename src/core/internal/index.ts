@@ -2,6 +2,7 @@ export {
     // from ./domrange
     RangeBase,
     RangyRange,
+    RangyRangeEx,
     rangesEqual,
     getRangeDocument,
     createPrototypeRange,
@@ -17,5 +18,6 @@ export {
     isSelectionValid,
     getSelection,
     Selection,
+    WrappedSelection,
     shimGetSelection
 } from "./_";

@@ -10,7 +10,7 @@
  * Build date: %%build:date%%
  */
 import * as api from "rangy2";
-import {WrappedRange, WrappedSelection, dom} from "rangy2";
+import {WrappedRange, WrappedSelection, dom, RangyRangeEx} from "rangy2";
 const getBody = dom.getBody;
 
 // const module = new Module("Highlighter", ["ClassApplier"]);
@@ -35,7 +35,7 @@ type ConverterCreator = () => Converter;
 interface Converter {
     type?: string;
 
-    rangeToCharacterRange(range: RangyRange, containerNode?: Node): CharacterRange;
+    rangeToCharacterRange(range: RangyRangeEx, containerNode?: Node): CharacterRange;
 
     characterRangeToRange(doc: Document | Window | HTMLIFrameElement,
                           characterRange: CharacterRange,

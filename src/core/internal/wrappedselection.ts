@@ -6,7 +6,7 @@ import * as util from "../util";
 import {Constructor, isHostMethod} from "../util";
 
 import * as dom from "../dom";
-import {DomPosition, getDocument, getBody} from "../dom";
+import {DomPosition, getDocument} from "../dom";
 
 import {
     DomRange, RangeBase, rangesEqual,
@@ -20,8 +20,6 @@ const module = new Module("WrappedSelection", ["DomRange", "WrappedRange"]);
 // This module creates a selection object wrapper that conforms as closely as possible to the Selection specification
 // in the HTML Editing spec (http://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#selections)
 // /* build:replaceWith(api) */rangy/* build:replaceEnd */.createCoreModule("WrappedSelection", ["DomRange", "WrappedRange"], function(api, module) {
-    config.checkSelectionRanges = true;
-
     var BOOLEAN = "boolean";
     var NUMBER = "number";
     var log = log4javascript.getLogger("rangy.WrappedSelection");
@@ -63,11 +61,6 @@ export function isSelectionValid() {
     return true;
 }
 
-// features. Always use window.getSelection
-const implementsWinGetSelection = true;
-//features. document.selection should only be used for IE < 9 which rangy2 don't support
-const implementsDocSelection = false;
-
     var testSelection = getNativeSelection();
 
     // In Firefox, the selection is null in an iframe with display: none. See issue #138.
@@ -77,23 +70,21 @@ const implementsDocSelection = false;
     }
 
     var testRange = createNativeRange(document);
-    var body = getBody(document);
 
     // Obtaining a range from a selection
-//features
-const selectionHasAnchorAndFocus = util.areHostProperties(testSelection,
-        ["anchorNode", "focusNode", "anchorOffset", "focusOffset"]);
+const selectionHasAnchorAndFocus =
+    features.selectionHasAnchorAndFocus =
+        util.areHostProperties(testSelection, ["anchorNode", "focusNode", "anchorOffset", "focusOffset"]);
 
     // Test for existence of native selection extend() method
-//features
-export const selectionHasExtend = isHostMethod(testSelection, "extend");
+const selectionHasExtend =
+    features.selectionHasExtend =
+        isHostMethod(testSelection, "extend");
 
     // Test if rangeCount exists
-//features
-const selectionHasRangeCount = (typeof testSelection.rangeCount == NUMBER);
-
-//features
-const selectionSupportsMultipleRanges = false;
+const selectionHasRangeCount =
+    features.selectionHasRangeCount =
+        (typeof testSelection.rangeCount == NUMBER);
 
 const addRangeBackwardToNative = selectionHasExtend
     ?   function(nativeSelection, range) {
@@ -104,10 +95,6 @@ const addRangeBackwardToNative = selectionHasExtend
             nativeSelection.extend(range.startContainer, range.startOffset);
         }
     :   null;
-
-    // ControlRanges
-//features
-const implementsControlRange = false;
 
     // Selection collapsedness
 let selectionIsCollapsed =
@@ -279,7 +266,7 @@ export class WrappedSelBase {
     readonly anchorOffset: number;
     isCollapsed: boolean;
 
-    constructor(public nativeSelection: Selection, public win) {
+    constructor(public nativeSelection: Selection, public win: Window) {
         //@deprecated the old rangy2 constructor form: (nativeSelection, docSelection: null, win)
         if (arguments.length == 3) {
             this.win = arguments[2];
@@ -288,6 +275,7 @@ export class WrappedSelBase {
     }
 }
 
+// TODO
 function createWrappedSelection<TBase extends Constructor<WrappedSelBase>>(Base: TBase) {
         function addRangeBackward(sel, range) {
             addRangeBackwardToNative(sel.nativeSelection, range);
@@ -299,7 +287,7 @@ function createWrappedSelection<TBase extends Constructor<WrappedSelBase>>(Base:
                         addRangeBackward(this, range);
                     } else {
                         var previousRangeCount;
-                        if (selectionSupportsMultipleRanges) {
+                        if (features.selectionSupportsMultipleRanges) {
                             previousRangeCount = this.rangeCount;
                         } else {
                             this.removeAllRanges();
@@ -647,12 +635,11 @@ function createWrappedSelection<TBase extends Constructor<WrappedSelBase>>(Base:
     }
 }
 
-const WrappedSelection = createWrappedSelection(WrappedSelBase);
-// export type WrappedSelection = InstanceType<typeof WrappedSelection>;
-// export interface WrappedSelection extends InstanceType<typeof WrappedSelection>{};
+export const WrappedSelection = createWrappedSelection(WrappedSelBase);
+export interface WrappedSelection extends InstanceType<typeof WrappedSelection>{}
 //alias
 export const Selection = WrappedSelection;
-export interface Selection extends InstanceType<typeof WrappedSelection>{};
+export interface Selection extends WrappedSelection{}
 
 export function shimGetSelection(win?) {
         if(!win) win = window;

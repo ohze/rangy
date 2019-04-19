@@ -1,24 +1,48 @@
 const UNDEF = "undefined";
 
-// // TODO remove
-// // Ensure rangy.rangePrototype and rangy.selectionPrototype are available immediately
-// export class RangePrototype {}
-// class SelectionPrototype {}
-
 export const version = "%%build:version%%";
 export const isBrowser = typeof window != UNDEF && typeof document != UNDEF;
 if (!isBrowser) {
     console.log("Rangy can only run in a browser");
 }
-export const features = {
-    implementsDomRange: true, // always support
-    implementsTextRange: false, // dont support IE < 9
-    htmlParsingConforms: true, // don't support IE 6, 7, Pre-Blink Opera
-    // Test for IE's crash (IE 6/7) or exception (IE >= 8) when a reference to garbage-collected text node is queried
-    // rangy2 don't support IE < 9. I have tested in browserstack.com with updated IE => not crash
+export interface Features {
+    /** @deprecated always support */
+    implementsDomRange: true;
+    /** @deprecated always dont support IE < 9 */
+    implementsTextRange: false;
+    /** @deprecated always don't support IE 6, 7, Pre-Blink Opera */
+    htmlParsingConforms: true;
+    /** @deprecated
+     * Test for IE's crash (IE 6/7) or exception (IE >= 8) when a reference to garbage-collected text node is queried
+     * rangy2 don't support IE < 9. I have tested in browserstack.com with updated IE => not crash */
+    crashyTextNodes: false;
+    /** Always use window.getSelection */
+    implementsWinGetSelection: true;
+    /** document.selection should only be used for IE < 9 which rangy2 don't support */
+    implementsDocSelection: false;
+    selectionHasAnchorAndFocus?: boolean;
+    selectionHasExtend?: boolean;
+    selectionHasRangeCount?: boolean;
+    selectionSupportsMultipleRanges: false;
+    implementsControlRange: false;
+}
+export const features: Features = {
+    implementsDomRange: true,
+    implementsTextRange: false,
+    htmlParsingConforms: true,
     crashyTextNodes: false,
+    implementsWinGetSelection: true,
+    implementsDocSelection: false,
+    selectionSupportsMultipleRanges: false,
+    implementsControlRange: false,
 };
-export const config = {
+/** @deprecated all configs is const! */
+export interface Config {
+    preferTextRange: false;
+    checkSelectionRanges: true;
+}
+/** @deprecated all configs is const! */
+export const config: Config = {
     preferTextRange: false,
     checkSelectionRanges: true,
 };

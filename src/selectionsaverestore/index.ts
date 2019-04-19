@@ -14,7 +14,7 @@
  */
 
 import * as api from "rangy2";
-import {Module, dom, selectionHasExtend} from "rangy2";
+import {Module, dom, features} from "rangy2";
 
 const removeNode = dom.removeNode;
 
@@ -194,7 +194,7 @@ export function restoreSelection(savedSelection, preserveDirection) {
             var sel = api.getSelection(savedSelection.win);
             var ranges = restoreRanges(rangeInfos), rangeCount = rangeInfos.length;
 
-            if (rangeCount == 1 && preserveDirection && selectionHasExtend && rangeInfos[0].backward) {
+            if (rangeCount == 1 && preserveDirection && features.selectionHasExtend && rangeInfos[0].backward) {
                 sel.removeAllRanges();
                 sel.addRange(ranges[0], true);
             } else {
