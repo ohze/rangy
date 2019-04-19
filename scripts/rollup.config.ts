@@ -60,8 +60,8 @@ function configsFor(name: string): RollupOptions[] {
                 sourcemap: true,
             },
             inlineDynamicImports: true,
-            // only bundle tslib in umd file
-            external: [...external, 'tslib'],
+            // only bundle tslib, core-js in umd file
+            external: (id) => [...external, 'tslib', 'core-js'].includes(id) || id.startsWith('core-js/'),
             plugins,
         }
     ]

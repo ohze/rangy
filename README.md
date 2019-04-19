@@ -33,11 +33,11 @@ A cross-browser JavaScript range and selection library.
     - `RangePrototype, rangePrototype, selectionPrototype`
     - `WrappedTextRange`
     
-+ if you want support IE, please shim, ex with [core-js](https://www.npmjs.com/package/core-js):
++ note: to support IE, we bundled the following [core-js](https://www.npmjs.com/package/core-js) modules
+  into `dist/*/bundles/index.umd.js` (not bundle into `index.esm.js` & other module types)
 ```javascript
 import "core-js/features/array/includes";
 import "core-js/features/object/assign";
-
 ```
 
 ## Install
