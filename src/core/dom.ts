@@ -123,9 +123,11 @@ export function insertAfter(node, precedingNode) {
     }
 
     // Note that we cannot use splitText() because it is bugridden in IE 9.
-export function splitDataNode(node, index, positionsToPreserve?) {
+export function splitDataNode(node: CharacterData,
+                              index: number,
+                              positionsToPreserve?: DomPosition[]) {
         log.debug("splitDataNode called at index " + index + " in node " + inspectNode(node));
-        var newNode = node.cloneNode(false);
+        var newNode = node.cloneNode(false) as CharacterData;
         newNode.deleteData(0, index);
         node.deleteData(index, node.length - index);
         insertAfter(newNode, node);
@@ -147,7 +149,7 @@ export function splitDataNode(node, index, positionsToPreserve?) {
         return newNode;
     }
 
-export function getDocument(node) {
+export function getDocument(node): Document {
         if (node.nodeType == 9) {
             return node;
         } else if (typeof node.ownerDocument != UNDEF) {
@@ -161,18 +163,18 @@ export function getDocument(node) {
         }
     }
 
-export function getWindow(node) {
+export function getWindow(node: Node): Window {
         var doc = getDocument(node);
         if (typeof doc.defaultView != UNDEF) {
             return doc.defaultView;
-        } else if (typeof doc.parentWindow != UNDEF) {
-            return doc.parentWindow;
+        } else if (typeof (doc as any).parentWindow != UNDEF) {
+            return (doc as any).parentWindow;
         } else {
             throw module.createError("Cannot get a window object for node");
         }
     }
 
-export function getIframeDocument(iframeEl) {
+export function getIframeDocument(iframeEl: HTMLIFrameElement): Document {
         if (typeof iframeEl.contentDocument != UNDEF) {
             return iframeEl.contentDocument;
         } else if (typeof iframeEl.contentWindow != UNDEF) {
@@ -193,11 +195,14 @@ export function getIframeWindow(iframeEl) {
     }
 
     // This looks bad. Is it worth it?
-export function isWindow(obj) {
+export function isWindow(obj): obj is Window {
         return obj && util.isHostMethod(obj, "setTimeout") && util.isHostObject(obj, "document");
     }
 
-export function getContentDocument(obj, module: Module, methodName) {
+function isIframe(o): o is HTMLIFrameElement {
+    return o.nodeType == 1 && o.tagName.toLowerCase() == "iframe"
+}
+export function getContentDocument(obj: Document | HTMLIFrameElement| Window, module: Module, methodName): Document {
         var doc;
 
         if (!obj) {
@@ -206,8 +211,7 @@ export function getContentDocument(obj, module: Module, methodName) {
 
         // Test if a DOM node has been passed and obtain a document object for it if so
         else if (util.isHostProperty(obj, "nodeType")) {
-            doc = (obj.nodeType == 1 && obj.tagName.toLowerCase() == "iframe") ?
-                getIframeDocument(obj) : getDocument(obj);
+            doc = isIframe(obj) ? getIframeDocument(obj) : getDocument(obj);
         }
 
         // Test if the doc parameter appears to be a Window object
@@ -274,7 +278,7 @@ export function comparePoints(nodeA, offsetA, nodeB, offsetB) {
         }
     }
 
-export function inspectNode(node) {
+export function inspectNode(node: Node): string {
         if (!node) {
             return "[No node]";
         }
@@ -282,8 +286,11 @@ export function inspectNode(node) {
             return '"' + node.data + '"';
         }
         if (node.nodeType == 1) {
-            var idAttr = node.id ? ' id="' + node.id + '"' : "";
-            return "<" + node.nodeName + idAttr + ">[index:" + getNodeIndex(node) + ",length:" + node.childNodes.length + "][" + (node.innerHTML || "[innerHTML not supported]").slice(0, 25) + "]";
+            var idAttr = (node as any).id ? ' id="' + (node as any).id + '"' : "";
+            return "<" + node.nodeName + idAttr +
+                ">[index:" + getNodeIndex(node) +
+                ",length:" + node.childNodes.length + "][" +
+                ((node as any).innerHTML || "[innerHTML not supported]").slice(0, 25) + "]";
         }
         return node.nodeName;
     }

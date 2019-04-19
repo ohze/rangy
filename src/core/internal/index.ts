@@ -1,6 +1,21 @@
-// domrange, wrappedrange, wrappedselection are circularly depended on each other
-// so, those 3 modules are bundled together into lib/core/internal.js
-// In consumer's code, pls import 'internal' instead of importing directly from those 3 modules.
-export * from "./domrange";
-export * from "./wrappedrange";
-export * from "./wrappedselection";
+export {
+    // from ./domrange
+    RangeBase,
+    RangyRange,
+    rangesEqual,
+    getRangeDocument,
+    createPrototypeRange,
+    DomRange,
+    createRangyRange,
+    // from ./wrappedrange
+    WrappedRange,
+    createNativeRange,
+    createRange,
+    shimCreateRange,
+    // from ./wrappedselection
+    getNativeSelection,
+    isSelectionValid,
+    getSelection,
+    Selection,
+    shimGetSelection
+} from "./_";

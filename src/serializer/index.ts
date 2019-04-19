@@ -73,7 +73,7 @@ export function getElementChecksum(el) {
         return crc32(info).toString(16);
     }
 
-export function serializePosition(node, offset, rootNode) {
+export function serializePosition(node, offset, rootNode?) {
         var pathParts = [], n = node;
         rootNode = rootNode || dom.getDocument(node).documentElement;
         while (n && n != rootNode) {
@@ -83,7 +83,7 @@ export function serializePosition(node, offset, rootNode) {
         return pathParts.join("/") + ":" + offset;
     }
 
-export function deserializePosition(serialized, rootNode, doc) {
+export function deserializePosition(serialized, rootNode?, doc?) {
         if (!rootNode) {
             rootNode = (doc || document).documentElement;
         }
@@ -120,7 +120,7 @@ export function serializeRange(range, omitChecksum?, rootNode?) {
 
     var deserializeRegex = /^([^,]+),([^,\{]+)(\{([^}]+)\})?$/;
 
-export function deserializeRange(serialized, rootNode, doc) {
+export function deserializeRange(serialized, rootNode?, doc?) {
         if (rootNode) {
             doc = doc || dom.getDocument(rootNode);
         } else {
@@ -142,7 +142,7 @@ export function deserializeRange(serialized, rootNode, doc) {
         return range;
     }
 
-export function canDeserializeRange(serialized, rootNode, doc) {
+export function canDeserializeRange(serialized, rootNode?, doc?) {
         if (!rootNode) {
             rootNode = (doc || document).documentElement;
         }
@@ -160,7 +160,7 @@ export function serializeSelection(selection, omitChecksum?, rootNode?) {
         return serializedRanges.join("|");
     }
 
-export function deserializeSelection(serialized, rootNode, win?) {
+export function deserializeSelection(serialized, rootNode?, win?) {
         if (rootNode) {
             win = win || dom.getWindow(rootNode);
         } else {
@@ -179,7 +179,7 @@ export function deserializeSelection(serialized, rootNode, win?) {
         return sel;
     }
 
-export function canDeserializeSelection(serialized, rootNode, win) {
+export function canDeserializeSelection(serialized, rootNode?, win?) {
         var doc;
         if (rootNode) {
             doc = win ? win.document : dom.getDocument(rootNode);
@@ -214,7 +214,7 @@ export function canDeserializeSelection(serialized, rootNode, win) {
         return null;
     }
 
-export function restoreSelectionFromCookie(win) {
+export function restoreSelectionFromCookie(win?) {
         win = win || window;
         var serialized = getSerializedSelectionFromCookie(win.document.cookie);
         if (serialized) {
@@ -222,7 +222,7 @@ export function restoreSelectionFromCookie(win) {
         }
     }
 
-export function saveSelectionCookie(win, props) {
+export function saveSelectionCookie(win?, props?) {
         win = win || window;
         props = (typeof props == "object") ? props : {};
         var expires = props.expires ? ";expires=" + props.expires.toUTCString() : "";

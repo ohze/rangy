@@ -21,9 +21,24 @@ A cross-browser JavaScript range and selection library.
       [321](https://github.com/timdown/rangy/issues/321) is auto-fixed!
 
 ## Guide to migrate from rangy 1.x to rangy2
-+ removed `rangy.util.{extend, toArray, `[forEach](http://kangax.github.io/compat-table/es5/#test-Array.prototype.forEach)`}`
-+ if you want support IE, please shim [Object.assign](http://kangax.github.io/compat-table/es6/#test-Object_static_methods_Object.assign)
-  ex, shim with [core-js](https://www.npmjs.com/package/core-js)
++ removed:
+    - `util.extend`. Pls use [Object.assign](http://kangax.github.io/compat-table/es6/#test-Object_static_methods_Object.assign)
+    - `util.toArray`. Pls use [Array.slice](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
+    - `util.`[forEach](http://kangax.github.io/compat-table/es5/#test-Array.prototype.forEach)
+    - `dom.arrayContains`. Pls use [Array.includes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes)
+    - `initialized, init, addInitListener`. rangy is now always initialized right when import
+    - `addShimListener`
+    - `createModule, createCoreModule`
+    - `warn, fail, supported`
+    - `RangePrototype, rangePrototype, selectionPrototype`
+    - `WrappedTextRange`
+    
++ if you want support IE, please shim, ex with [core-js](https://www.npmjs.com/package/core-js):
+```javascript
+import "core-js/features/array/includes";
+import "core-js/features/object/assign";
+
+```
 
 ## Install
 ```bash

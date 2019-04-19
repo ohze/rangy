@@ -7,7 +7,7 @@ function writeTsConfig(name: string, es: boolean) {
     const target = es? "es2018" : "es5";
     const outDir = es? "esm2015" : "esm5";
     const c = {
-        extends: "../tsconfig.json",
+        extends: "../tsconfig.base.json",
         compilerOptions: {
             declarationDir: `../../dist/${name}/types`,
             outDir: `../../dist/${name}/${outDir}`,
@@ -34,7 +34,10 @@ function writeTsConfig(name: string, es: boolean) {
 function tsc(es: boolean): boolean {
     modules.forEach(n => writeTsConfig(n, es));
     console.log(`$ tsc -b #es=${es}`);
-    const r = spawnSync('tsc', ['-b'], {stdio:'inherit'});
+    const r = spawnSync('tsc', ['-b'], {
+        stdio:'inherit',
+        cwd: srcDir,
+    });
     return r.status === 0;
 }
 

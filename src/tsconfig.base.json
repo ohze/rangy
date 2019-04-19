@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "module": "esnext",
+    "lib": [
+      "dom",
+      "es2018"
+    ],
+    //"strict": true, TODO
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "stripInternal": true,
+    "declaration": true,
+    "declarationMap": true,
+    "importHelpers": true,
+    "plugins": [
+      {
+        "name": "typescript-tslint-plugin",
+        "alwaysShowRuleFailuresAsWarnings": false
+      }
+    ],
+    "composite": true
+  }
+}

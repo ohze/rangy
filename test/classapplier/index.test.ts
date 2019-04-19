@@ -1,6 +1,8 @@
 import {ClassApplier, createClassApplier} from 'rangy-classapplier';
 import * as rangy from 'rangy2';
 
+import "../qunit-ex";
+
 QUnit.module("Class Applier module tests");
 
 QUnit.test('Editable tests', (t) => {
@@ -631,26 +633,6 @@ QUnit.test("Test range after two toggles", function(t) {
     applier1.toggleRange(range);
     t.equal('o[n]e', htmlAndRangeToString(testEl, range));
 });
-
-declare global {
-    interface Assert {
-        notThrows(f: () => void, msg?: string): void;
-    }
-}
-QUnit.assert.notThrows = function(f: () => void, msg?: string) {
-    let e;
-    try {
-        f()
-    } catch (err) {
-        e = err;
-    }
-    const result = typeof e === 'undefined';
-    const desc = result || (typeof e.stack === 'undefined')? '' : e.stack;
-    this.pushResult({
-        result,
-        message: msg + desc
-    });
-};
 
 QUnit.test("Test issue 73 (range ending in element)", function(t) {
     var applier = createClassApplier("c1");

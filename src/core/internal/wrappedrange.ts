@@ -3,7 +3,7 @@ import {onDocReady} from '../api';
 import {Module} from "../module";
 import {getBody, getContentDocument, getNodeLength} from '../dom';
 
-import {DomRange, createPrototypeRange, rangeProperties, IterableRangeBase} from "./domrange";
+import {createPrototypeRange, rangeProperties, RangeBase, RangyRange} from "./_";
 
 import * as log4javascript from "log4javascript";
 
@@ -20,15 +20,12 @@ const module = new Module("WrappedRange", ["DomRange"]);
         // - Provide workarounds for specific browser bugs
         // - provide convenient extensions, which are inherited from Rangy's DomRange
 
-            function updateRangeProperties(range) {
-                var i = rangeProperties.length, prop;
-                while (i--) {
-                    prop = rangeProperties[i];
+            function updateRangeProperties(range: WrappedRange) {
+                for(const prop of rangeProperties) {
                     range[prop] = range.nativeRange[prop];
                 }
                 // Fix for broken collapsed property in IE 9.
                 range.collapsed = (range.startContainer === range.endContainer && range.startOffset === range.endOffset);
-                return true;
             }
 
             function updateNativeRange(range, startContainer, startOffset, endContainer, endOffset) {
@@ -42,17 +39,8 @@ const module = new Module("WrappedRange", ["DomRange"]);
                     range.setStart(startContainer, startOffset);
                 }
             }
-// type Constructor<T> = new (...args: any[]) => T;
-        class WrappedRangeBase implements IterableRangeBase {
-            commonAncestorContainer: Node;
-            collapsed: boolean;
-            endContainer: Node;
-            endOffset: number;
-            startContainer: Node;
-            startOffset: number;
-        }
 
-export class WrappedRange extends createPrototypeRange(WrappedRangeBase, updateNativeRange) /*implements WrappedRangeBase*/ {
+export class WrappedRange extends createPrototypeRange(RangeBase, updateNativeRange) /*implements WrappedRangeBase*/ {
             constructor(public nativeRange: Range) {
                 super();
                 if (!nativeRange) {
@@ -138,8 +126,8 @@ export class WrappedRange extends createPrototypeRange(WrappedRangeBase, updateN
             // constants START_TO_END and END_TO_START: https://bugs.webkit.org/show_bug.cgi?id=20738
             // note: this bug is fixed in 2008, so rangy2 don't test this
 
-            compareBoundaryPoints(type, range) {
-                return this.nativeRange.compareBoundaryPoints(type, range.nativeRange || range);
+            compareBoundaryPoints(how: number, sourceRange: RangyRange): number {
+                return this.nativeRange.compareBoundaryPoints(how, (sourceRange as any).nativeRange || sourceRange);
             }
 
             /*--------------------------------------------------------------------------------------------------------*/
@@ -149,6 +137,7 @@ export class WrappedRange extends createPrototypeRange(WrappedRangeBase, updateN
                 return "WrappedRange";
             };
         }
+// Object.assign(WrappedRange, comparisonConstants);
 
 // change WrappedRange.{deleteContents, extractContents, createContextualFragment} if need
 function docReadyHandler(): void {
@@ -210,7 +199,7 @@ function docReadyHandler(): void {
 
 onDocReady(docReadyHandler);
 
-            export function createNativeRange(doc?) {
+            export function createNativeRange(doc?: Document | HTMLIFrameElement| Window): Range {
                 doc = getContentDocument(doc, module, "createNativeRange");
                 return doc.createRange();
             };
@@ -218,11 +207,6 @@ onDocReady(docReadyHandler);
     export function createRange(doc?) {
         doc = getContentDocument(doc, module, "createRange");
         return new WrappedRange(createNativeRange(doc));
-    };
-
-    export function createRangyRange(doc?) {
-        doc = getContentDocument(doc, module, "createRangyRange");
-        return new DomRange(doc);
     };
 
     export function shimCreateRange(win?) {

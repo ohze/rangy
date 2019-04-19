@@ -8,8 +8,10 @@ import {Constructor, isHostMethod} from "../util";
 import * as dom from "../dom";
 import {DomPosition, getDocument, getBody} from "../dom";
 
-import {DomRange, rangesEqual} from "./domrange";
-import {createNativeRange, createRange, WrappedRange} from "./wrappedrange";
+import {
+    DomRange, RangeBase, rangesEqual,
+    createNativeRange, createRange, WrappedRange
+} from "./_";
 
 import * as log4javascript from "log4javascript";
 
@@ -62,9 +64,9 @@ export function isSelectionValid() {
 }
 
 // features. Always use window.getSelection
-export const implementsWinGetSelection = true;
+const implementsWinGetSelection = true;
 //features. document.selection should only be used for IE < 9 which rangy2 don't support
-export const implementsDocSelection = false;
+const implementsDocSelection = false;
 
     var testSelection = getNativeSelection();
 
@@ -79,7 +81,7 @@ export const implementsDocSelection = false;
 
     // Obtaining a range from a selection
 //features
-export const selectionHasAnchorAndFocus = util.areHostProperties(testSelection,
+const selectionHasAnchorAndFocus = util.areHostProperties(testSelection,
         ["anchorNode", "focusNode", "anchorOffset", "focusOffset"]);
 
     // Test for existence of native selection extend() method
@@ -88,10 +90,10 @@ export const selectionHasExtend = isHostMethod(testSelection, "extend");
 
     // Test if rangeCount exists
 //features
-export const selectionHasRangeCount = (typeof testSelection.rangeCount == NUMBER);
+const selectionHasRangeCount = (typeof testSelection.rangeCount == NUMBER);
 
 //features
-export const selectionSupportsMultipleRanges = false;
+const selectionSupportsMultipleRanges = false;
 
 const addRangeBackwardToNative = selectionHasExtend
     ?   function(nativeSelection, range) {
@@ -105,7 +107,7 @@ const addRangeBackwardToNative = selectionHasExtend
 
     // ControlRanges
 //features
-export const implementsControlRange = false;
+const implementsControlRange = false;
 
     // Selection collapsedness
 let selectionIsCollapsed =
@@ -141,7 +143,7 @@ let selectionIsCollapsed =
         sel._ranges.length = 0;
     }
 
-    function getNativeRange(range) {
+    function getNativeRange(range: DomRange | WrappedRange | RangeBase): Range {
         var nativeRange;
         if (range instanceof DomRange) {
             nativeRange = createNativeRange(range.getDocument());
@@ -149,7 +151,8 @@ let selectionIsCollapsed =
             nativeRange.setStart(range.startContainer, range.startOffset);
         } else if (range instanceof WrappedRange) {
             nativeRange = range.nativeRange;
-        } else if (features.implementsDomRange && (range instanceof dom.getWindow(range.startContainer).Range)) {
+        // } else if (features.implementsDomRange && ((range as any) instanceof dom.getWindow(range.startContainer).Range)) {
+        } else if (range instanceof Range) {
             nativeRange = range;
         }
         return nativeRange;
@@ -281,7 +284,7 @@ export class WrappedSelBase {
         if (arguments.length == 3) {
             this.win = arguments[2];
         }
-        (this as any as WrappedSelection).refresh();
+        (this as any as Selection).refresh();
     }
 }
 
@@ -644,12 +647,12 @@ function createWrappedSelection<TBase extends Constructor<WrappedSelBase>>(Base:
     }
 }
 
-export const WrappedSelection = createWrappedSelection(WrappedSelBase);
+const WrappedSelection = createWrappedSelection(WrappedSelBase);
 // export type WrappedSelection = InstanceType<typeof WrappedSelection>;
-export interface WrappedSelection extends InstanceType<typeof WrappedSelection>{};
+// export interface WrappedSelection extends InstanceType<typeof WrappedSelection>{};
 //alias
 export const Selection = WrappedSelection;
-export interface Selection extends WrappedSelection{};
+export interface Selection extends InstanceType<typeof WrappedSelection>{};
 
 export function shimGetSelection(win?) {
         if(!win) win = window;
