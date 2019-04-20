@@ -23,8 +23,9 @@ export interface Features {
     selectionHasAnchorAndFocus?: boolean;
     selectionHasExtend?: boolean;
     selectionHasRangeCount?: boolean;
-    selectionSupportsMultipleRanges: false;
+    selectionSupportsMultipleRanges: boolean;
     implementsControlRange: false;
+    collapsedNonEditableSelectionsSupported: boolean;
 }
 export const features: Features = {
     implementsDomRange: true,
@@ -35,13 +36,13 @@ export const features: Features = {
     implementsDocSelection: false,
     selectionSupportsMultipleRanges: false,
     implementsControlRange: false,
+    collapsedNonEditableSelectionsSupported: true,
 };
-/** @deprecated all configs is const! */
 export interface Config {
+    /** @deprecated range2 don't have TextRange */
     preferTextRange: false;
-    checkSelectionRanges: true;
+    checkSelectionRanges: boolean;
 }
-/** @deprecated all configs is const! */
 export const config: Config = {
     preferTextRange: false,
     checkSelectionRanges: true,

@@ -15,7 +15,8 @@
 import * as api from "rangy2";
 import {
     WrappedSelection as SelProto,
-    DomRange as RangeProto
+    DomRange as RangeProto,
+    getNativeSelection
 } from "rangy2";
 
 // const module = new Module("Util", ["WrappedSelection"]);
@@ -31,9 +32,9 @@ export class WrappedSelection extends SelProto {
 
     pasteHtml(html) {
         this.deleteFromDocument();
-        var range = this.getRangeAt(0);
-        var frag = this.createContextualFragment(html);
-        var lastNode = frag.lastChild;
+        const range = this.getRangeAt(0);
+        const frag = range.createContextualFragment(html);
+        const lastNode = frag.lastChild;
         range.insertNode(frag);
         if (lastNode) {
             range.setStartAfter(lastNode)
@@ -105,7 +106,9 @@ export function createRangeFromNodeContents(node) {
     };
 
 export function selectNodeContents(node) {
-        api.getSelection().selectNodeContents(node);
-    };
+    const nativeSel = getNativeSelection();
+    const sel = new WrappedSelection(nativeSel, window)
+    sel.selectNodeContents(node);
+}
 
     // TODO: simple selection save/restore
