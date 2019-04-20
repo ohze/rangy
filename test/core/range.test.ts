@@ -1604,20 +1604,20 @@ function testAcid3(rangeCreator, rangeCreatorName) {
     });*/
 }
 
-// testRangeCreator([document], "main", createRangyRange, "Rangy Range");
+testRangeCreator([document], "main", createRangyRange, "Rangy Range");
 testRangeCreator([document], "main", createWrappedNativeDomRange, "Wrapped native Range");
 
-// if (hasNativeDomRange) {
-//     testRangeCreator([document], "main", createNativeDomRange, "native Range");
-// }
-//
+if (hasNativeDomRange) {
+    testRangeCreator([document], "main", createNativeDomRange, "native Range");
+}
+
 var iframeDoc = [];
-// testRangeCreator(iframeDoc, "iframe", createRangyRange, "Rangy Range");
-// testRangeCreator(iframeDoc, "iframe", createWrappedNativeDomRange, "Wrapped native Range");
-//
-// if (hasNativeDomRange) {
-//     testRangeCreator(iframeDoc, "iframe", createNativeDomRange, "native Range");
-// }
+testRangeCreator(iframeDoc, "iframe", createRangyRange, "Rangy Range");
+testRangeCreator(iframeDoc, "iframe", createWrappedNativeDomRange, "Wrapped native Range");
+
+if (hasNativeDomRange) {
+    testRangeCreator(iframeDoc, "iframe", createNativeDomRange, "native Range");
+}
 
 var iframeEl;
 

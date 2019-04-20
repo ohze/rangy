@@ -1,11 +1,13 @@
+import {WrappedSelection} from "rangy2";
+
 var hasNativeGetSelection = "getSelection" in window;
 var hasNativeDomRange = "createRange" in document;
 
-function createRangySelection(win) {
+function createRangySelection(win): WrappedSelection {
     return rangy.getSelection(win);
 }
 
-function createNativeSelection(win) {
+function createNativeSelection(win): Selection {
     return win.getSelection();
 }
 
@@ -26,22 +28,36 @@ function testExceptionCode(t, func, code) {
         func();
         t.fail("No error thrown");
     } catch (ex) {
-        t.assertEquals(ex.code, code);
+        t.equal(ex.code, code);
     }
 }
 
 function getOtherDocument() {
-    var iframe = document.getElementById("selectors");
+    var iframe = document.getElementById("selectors") as HTMLIFrameElement;
     return iframe.contentDocument || iframe.contentWindow.document;
 }
 
-function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectionCreatorName, rangeCreator, rangeCreatorName) {
-    xn.test.suite(selectionCreatorName + " in " + winName + " window with range creator " + rangeCreatorName, function(s) {
-        var win, doc;
-        var DomRange = rangy.DomRange;
-        var DOMException = rangy.DOMException;
+type SelectionCreator = (win) => WrappedSelection | Selection;
 
-        s.setUp = function(t) {
+function testSelectionAndRangeCreators(wins, winName,
+                                       selectionCreator: SelectionCreator,
+                                       selectionCreatorName, rangeCreator, rangeCreatorName) {
+    var win, doc: Document;
+    var DomRange = rangy.DomRange;
+    var DOMException = rangy.DOMException;
+    let nodes: {
+        div: HTMLDivElement;
+        plainText: Text;
+        b: HTMLElement;
+        boldText: Text;
+        i: HTMLElement;
+        boldAndItalicText: Text;
+        boldText2: Text;
+        div2: HTMLDivElement;
+        div2Text: Text;
+    };
+    const hooks: Hooks = {
+        beforeEach: function () {
             win = wins[0];
             doc = win.document;
             var div = doc.createElement("div");
@@ -56,7 +72,7 @@ function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectio
             var div2Text = div2.appendChild(doc.createTextNode("Second div"));
             doc.body.appendChild(div2);
 
-            t.nodes = {
+            nodes = {
                 div: div,
                 plainText: plainText,
                 b: b,
@@ -67,175 +83,180 @@ function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectio
                 div2: div2,
                 div2Text: div2Text
             };
-        };
+        },
+        afterEach: function () {
+            doc.body.removeChild(nodes.div);
+            doc.body.removeChild(nodes.div2);
+            nodes = null;
+        }
+    };
 
-        s.tearDown = function(t) {
-            doc.body.removeChild(t.nodes.div);
-            doc.body.removeChild(t.nodes.div2);
-            t.nodes = null;
-        };
+    QUnit.module(selectionCreatorName + " in " + winName + " window with range creator " + rangeCreatorName, hooks);
 
+    // FIXME is tests atomic when modifying initialCheckSelectionRanges?
+    // https://qunitjs.com/cookbook/#keeping-tests-atomic
+    let initialCheckSelectionRanges: boolean;
         function setUp_noRangeCheck(t) {
-            t.initialCheckSelectionRanges = rangy.config.checkSelectionRanges;
+            initialCheckSelectionRanges = rangy.config.checkSelectionRanges;
             rangy.config.checkSelectionRanges = false;
         }
 
         function tearDown_noRangeCheck(t) {
-            rangy.config.checkSelectionRanges = t.initialCheckSelectionRanges;
+            rangy.config.checkSelectionRanges = initialCheckSelectionRanges;
         }
 
-        s.test("removeAllRanges test", function(t) {
+        QUnit.test("removeAllRanges test", function(t) {
             var sel = selectionCreator(win);
             sel.removeAllRanges();
-            t.assertEquals(sel.rangeCount, 0);
+            t.equal(sel.rangeCount, 0);
             t.assertNull(sel.anchorNode);
-            t.assertEquals(sel.anchorOffset, 0);
+            t.equal(sel.anchorOffset, 0);
             t.assertNull(sel.focusNode);
-            t.assertEquals(sel.focusOffset, 0);
-            t.assertEquivalent(sel.isCollapsed, true);
+            t.equal(sel.focusOffset, 0);
+            t.strictEqual(sel.isCollapsed, true);
         });
 
-        s.test("addRange test", function(t) {
+        QUnit.testEx("addRange test", function(t) {
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.selectNodeContents(t.nodes.plainText);
+            range.selectNodeContents(nodes.plainText);
             sel.addRange(range);
-            t.assertEquals(sel.rangeCount, 1);
-            t.assertEquivalent(sel.anchorNode, t.nodes.plainText);
-            t.assertEquals(sel.anchorOffset, 0);
-            t.assertEquivalent(sel.focusNode, t.nodes.plainText);
-            t.assertEquals(sel.focusOffset, t.nodes.plainText.length);
-            t.assertEquivalent(sel.isCollapsed, false);
+            t.equal(sel.rangeCount, 1);
+            t.strictEqual(sel.anchorNode, nodes.plainText);
+            t.equal(sel.anchorOffset, 0);
+            t.strictEqual(sel.focusNode, nodes.plainText);
+            t.equal(sel.focusOffset, nodes.plainText.length);
+            t.strictEqual(sel.isCollapsed, false);
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("removeRange test", function(t) {
+        QUnit.testEx("removeRange test", function(t) {
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.selectNodeContents(t.nodes.plainText);
+            range.selectNodeContents(nodes.plainText);
             sel.addRange(range);
-            t.assertEquals(sel.rangeCount, 1);
+            t.equal(sel.rangeCount, 1);
             sel.removeRange(range);
-            t.assertEquals(sel.rangeCount, 0);
+            t.equal(sel.rangeCount, 0);
             t.assertNull(sel.anchorNode);
-            t.assertEquals(sel.anchorOffset, 0);
+            t.equal(sel.anchorOffset, 0);
             t.assertNull(sel.focusNode);
-            t.assertEquals(sel.focusOffset, 0);
-            t.assertEquivalent(sel.isCollapsed, true);
+            t.equal(sel.focusOffset, 0);
+            t.strictEqual(sel.isCollapsed, true);
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("removeRange instance test", function(t) {
+        QUnit.testEx("removeRange instance test", function(t) {
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.selectNodeContents(t.nodes.plainText);
+            range.selectNodeContents(nodes.plainText);
             sel.addRange(range);
-            t.assertEquals(sel.rangeCount, 1);
-            range.selectNodeContents(t.nodes.b);
+            t.equal(sel.rangeCount, 1);
+            range.selectNodeContents(nodes.b);
             sel.removeRange(range);
-            t.assertEquals(sel.rangeCount, 0);
+            t.equal(sel.rangeCount, 0);
             t.assertNull(sel.anchorNode);
-            t.assertEquals(sel.anchorOffset, 0);
+            t.equal(sel.anchorOffset, 0);
             t.assertNull(sel.focusNode);
-            t.assertEquals(sel.focusOffset, 0);
-            t.assertEquivalent(sel.isCollapsed, true);
+            t.equal(sel.focusOffset, 0);
+            t.strictEqual(sel.isCollapsed, true);
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
         if (rangy.features.selectionSupportsMultipleRanges) {
             // Next test no longer applies
 /*
-            s.test("removeRange multiple instances of same range test", function(t) {
+            QUnit.test("removeRange multiple instances of same range test", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.selectNodeContents(t.nodes.plainText);
+                range.selectNodeContents(nodes.plainText);
                 sel.addRange(range);
                 sel.addRange(range);
-                t.assertEquals(sel.rangeCount, 2);
+                t.equal(sel.rangeCount, 2);
                 sel.removeRange(range);
-                t.assertEquals(sel.rangeCount, 1);
+                t.equal(sel.rangeCount, 1);
                 sel.removeRange(range);
-                t.assertEquals(sel.rangeCount, 0);
+                t.equal(sel.rangeCount, 0);
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
 */
 
-            s.test("Multiple ranges test", function(t) {
+            QUnit.testEx("Multiple ranges test", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.selectNodeContents(t.nodes.plainText);
+                range.selectNodeContents(nodes.plainText);
                 sel.addRange(range);
                 var r2 = rangeCreator(doc);
-                r2.selectNodeContents(t.nodes.boldText);
+                r2.selectNodeContents(nodes.boldText);
                 sel.addRange(r2);
 
                 if (sel.rangeCount == 2) {
-                    t.assert(DomRange.rangesEqual(range, sel.getRangeAt(0)));
-                    t.assert(DomRange.rangesEqual(r2, sel.getRangeAt(1)));
+                    t.ok(DomRange.rangesEqual(range, sel.getRangeAt(0)));
+                    t.ok(DomRange.rangesEqual(r2, sel.getRangeAt(1)));
                 } else if (sel.rangeCount == 1) {
-                    t.assert(DomRange.rangesEqual(range, sel.getRangeAt(0)));
+                    t.ok(DomRange.rangesEqual(range, sel.getRangeAt(0)));
                 }
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
         } else {
-            s.test("Adding mutiple ranges where only one is supported", function(t) {
+            QUnit.testEx("Adding mutiple ranges where only one is supported", function(t) {
                 rangy.config.checkSelectionRanges = false;
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range1 = rangeCreator(doc);
-                range1.selectNodeContents(t.nodes.plainText);
+                range1.selectNodeContents(nodes.plainText);
                 var range2 = rangeCreator(doc);
-                range2.selectNodeContents(t.nodes.b);
+                range2.selectNodeContents(nodes.b);
                 sel.addRange(range1);
-                t.assertEquals(sel.rangeCount, 1);
+                t.equal(sel.rangeCount, 1);
                 sel.addRange(range2);
-                t.assertEquals(sel.rangeCount, 1);
+                t.equal(sel.rangeCount, 1);
 
                 // According to the spec, a reference to the added range should be stored by the selection so that the
                 // same range object is returned by getRangeAt(). However, most browsers don't do this (WebKit, IE) and
                 // Rangy doesn't do this either because it sometimes needs to change the range boundary points to make
                 // them valid selection boundaries.
-                //t.assertEquivalent(range2, sel.getRangeAt(0));
+                //t.strictEqual(range2, sel.getRangeAt(0));
                 sel.removeRange(range1);
-                t.assertEquals(sel.rangeCount, 1);
+                t.equal(sel.rangeCount, 1);
                 sel.removeRange(range2);
-                t.assertEquals(sel.rangeCount, 0);
+                t.equal(sel.rangeCount, 0);
                 rangy.config.checkSelectionRanges = false;
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
         }
 
-        s.test("getRangeAt test", function(t) {
+        QUnit.testEx("getRangeAt test", function(t) {
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.selectNodeContents(t.nodes.plainText);
+            range.selectNodeContents(nodes.plainText);
             sel.addRange(range);
-            t.assert(DomRange.rangesEqual(range, sel.getRangeAt(0)));
+            t.ok(DomRange.rangesEqual(range, sel.getRangeAt(0)));
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
         if (rangy.features.collapsedNonEditableSelectionsSupported) {
-            s.test("Collapse same document test (non-editable)", function(t) {
+            QUnit.testEx("Collapse same document test (non-editable)", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.selectNodeContents(t.nodes.plainText);
+                range.selectNodeContents(nodes.plainText);
                 sel.addRange(range);
-                sel.collapse(t.nodes.plainText, 1);
-                t.assertEquals(sel.rangeCount, 1);
-                t.assertEquivalent(sel.anchorNode, t.nodes.plainText);
-                t.assertEquals(sel.anchorOffset, 1);
-                t.assertEquivalent(sel.focusNode, t.nodes.plainText);
-                t.assertEquals(sel.focusOffset, 1);
-                t.assertEquivalent(sel.isCollapsed, true);
+                sel.collapse(nodes.plainText, 1);
+                t.equal(sel.rangeCount, 1);
+                t.strictEqual(sel.anchorNode, nodes.plainText);
+                t.equal(sel.anchorOffset, 1);
+                t.strictEqual(sel.focusNode, nodes.plainText);
+                t.equal(sel.focusOffset, 1);
+                t.strictEqual(sel.isCollapsed, true);
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-            s.test("Collapse other document test (non-editable)", function(t) {
+            QUnit.testEx("Collapse other document test (non-editable)", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.selectNodeContents(t.nodes.plainText);
+                range.selectNodeContents(nodes.plainText);
                 sel.addRange(range);
-                sel.collapse(t.nodes.b, 1);
+                sel.collapse(nodes.b, 1);
                 var otherDoc = getOtherDocument();
 
                 // The spec doesn't seem to suggest an exception should be thrown any more. Browser behaviour varies,
@@ -252,73 +273,73 @@ function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectio
 */
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-            s.test("collapseToStart test (non-editable)", function(t) {
+            QUnit.testEx("collapseToStart test (non-editable)", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.boldText, 1);
-                range.setEnd(t.nodes.boldText, 2);
+                range.setStart(nodes.boldText, 1);
+                range.setEnd(nodes.boldText, 2);
                 sel.addRange(range);
                 sel.collapseToStart();
-                t.assertEquals(sel.rangeCount, 1);
-                t.assertEquivalent(sel.anchorNode, t.nodes.boldText);
-                t.assertEquals(sel.anchorOffset, 1);
-                t.assertEquivalent(sel.focusNode, t.nodes.boldText);
-                t.assertEquals(sel.focusOffset, 1);
-                t.assertEquivalent(sel.isCollapsed, true);
+                t.equal(sel.rangeCount, 1);
+                t.strictEqual(sel.anchorNode, nodes.boldText);
+                t.equal(sel.anchorOffset, 1);
+                t.strictEqual(sel.focusNode, nodes.boldText);
+                t.equal(sel.focusOffset, 1);
+                t.strictEqual(sel.isCollapsed, true);
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-            s.test("collapseToEnd test (non-editable)", function(t) {
+            QUnit.test("collapseToEnd test (non-editable)", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.boldText, 1);
-                range.setEnd(t.nodes.boldText, 2);
+                range.setStart(nodes.boldText, 1);
+                range.setEnd(nodes.boldText, 2);
                 sel.addRange(range);
                 sel.collapseToEnd();
-                t.assertEquals(sel.rangeCount, 1);
-                t.assertEquivalent(sel.anchorNode, t.nodes.boldText);
-                t.assertEquals(sel.anchorOffset, 2);
-                t.assertEquivalent(sel.focusNode, t.nodes.boldText);
-                t.assertEquals(sel.focusOffset, 2);
-                t.assertEquivalent(sel.isCollapsed, true);
+                t.equal(sel.rangeCount, 1);
+                t.strictEqual(sel.anchorNode, nodes.boldText);
+                t.equal(sel.anchorOffset, 2);
+                t.strictEqual(sel.focusNode, nodes.boldText);
+                t.equal(sel.focusOffset, 2);
+                t.strictEqual(sel.isCollapsed, true);
             });
         } else {
-            s.test("Test collapsed selections cannot exist in non-editable elements", function(t) {
+            QUnit.testEx("Test collapsed selections cannot exist in non-editable elements", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.selectNodeContents(t.nodes.plainText);
+                range.selectNodeContents(nodes.plainText);
                 sel.addRange(range);
-                sel.collapse(t.nodes.plainText, 1);
-                t.assertEquals(sel.rangeCount, 0);
+                sel.collapse(nodes.plainText, 1);
+                t.equal(sel.rangeCount, 0);
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
         }
 
-        s.test("Collapse same document test (editable)", function(t) {
-            t.nodes.div.contentEditable = true;
+        QUnit.testEx("Collapse same document test (editable)", function(t) {
+            nodes.div.contentEditable = 'true';
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.selectNodeContents(t.nodes.plainText);
+            range.selectNodeContents(nodes.plainText);
             sel.addRange(range);
-            sel.collapse(t.nodes.plainText, 1);
-            t.assertEquals(sel.rangeCount, 1);
-            t.assertEquivalent(sel.anchorNode, t.nodes.plainText);
-            t.assertEquals(sel.anchorOffset, 1);
-            t.assertEquivalent(sel.focusNode, t.nodes.plainText);
-            t.assertEquals(sel.focusOffset, 1);
-            t.assertEquivalent(sel.isCollapsed, true);
+            sel.collapse(nodes.plainText, 1);
+            t.equal(sel.rangeCount, 1);
+            t.strictEqual(sel.anchorNode, nodes.plainText);
+            t.equal(sel.anchorOffset, 1);
+            t.strictEqual(sel.focusNode, nodes.plainText);
+            t.equal(sel.focusOffset, 1);
+            t.strictEqual(sel.isCollapsed, true);
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("Collapse other document test (editable)", function(t) {
-            t.nodes.div.contentEditable = true;
+        QUnit.skipEx("Collapse other document test (editable)", function(t) {
+            nodes.div.contentEditable = 'true';
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.selectNodeContents(t.nodes.plainText);
+            range.selectNodeContents(nodes.plainText);
             sel.addRange(range);
-            sel.collapse(t.nodes.b, 1);
+            sel.collapse(nodes.b, 1);
             var otherDoc = getOtherDocument();
 
             // The spec doesn't seem to suggest an exception should be thrown any more. Browser behaviour varies, it's an edge
@@ -335,57 +356,57 @@ function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectio
 */
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("collapseToStart test (editable)", function(t) {
-            t.nodes.div.contentEditable = true;
+        QUnit.testEx("collapseToStart test (editable)", function(t) {
+            nodes.div.contentEditable = 'true';
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.setStart(t.nodes.boldText, 1);
-            range.setEnd(t.nodes.boldText, 2);
+            range.setStart(nodes.boldText, 1);
+            range.setEnd(nodes.boldText, 2);
             sel.addRange(range);
             sel.collapseToStart();
-            t.assertEquals(sel.rangeCount, 1);
-            t.assertEquivalent(sel.anchorNode, t.nodes.boldText);
-            t.assertEquals(sel.anchorOffset, 1);
-            t.assertEquivalent(sel.focusNode, t.nodes.boldText);
-            t.assertEquals(sel.focusOffset, 1);
-            t.assertEquivalent(sel.isCollapsed, true);
+            t.equal(sel.rangeCount, 1);
+            t.strictEqual(sel.anchorNode, nodes.boldText);
+            t.equal(sel.anchorOffset, 1);
+            t.strictEqual(sel.focusNode, nodes.boldText);
+            t.equal(sel.focusOffset, 1);
+            t.strictEqual(sel.isCollapsed, true);
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("collapseToEnd test (editable)", function(t) {
-            t.nodes.div.contentEditable = true;
+        QUnit.test("collapseToEnd test (editable)", function(t) {
+            nodes.div.contentEditable = 'true';
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.setStart(t.nodes.boldText, 1);
-            range.setEnd(t.nodes.boldText, 2);
+            range.setStart(nodes.boldText, 1);
+            range.setEnd(nodes.boldText, 2);
             sel.addRange(range);
             sel.collapseToEnd();
-            t.assertEquals(sel.rangeCount, 1);
-            t.assertEquivalent(sel.anchorNode, t.nodes.boldText);
-            t.assertEquals(sel.anchorOffset, 2);
-            t.assertEquivalent(sel.focusNode, t.nodes.boldText);
-            t.assertEquals(sel.focusOffset, 2);
-            t.assertEquivalent(sel.isCollapsed, true);
+            t.equal(sel.rangeCount, 1);
+            t.strictEqual(sel.anchorNode, nodes.boldText);
+            t.equal(sel.anchorOffset, 2);
+            t.strictEqual(sel.focusNode, nodes.boldText);
+            t.equal(sel.focusOffset, 2);
+            t.strictEqual(sel.isCollapsed, true);
         });
 
-        s.test("selectAllChildren same document test", function(t) {
+        QUnit.testEx("selectAllChildren same document test", function(t) {
             var sel = selectionCreator(win);
             sel.removeAllRanges();
             var range = rangeCreator(doc);
-            range.setStart(t.nodes.plainText, 1);
-            range.setEnd(t.nodes.plainText, 2);
+            range.setStart(nodes.plainText, 1);
+            range.setEnd(nodes.plainText, 2);
             sel.addRange(range);
-            sel.selectAllChildren(t.nodes.div);
-            t.assertEquals(sel.rangeCount, 1);
-            t.assertEquivalent(sel.anchorNode, t.nodes.div);
-            t.assertEquals(sel.anchorOffset, 0);
-            t.assertEquivalent(sel.focusNode, t.nodes.div);
-            t.assertEquals(sel.focusOffset, t.nodes.div.childNodes.length);
-            t.assertEquivalent(sel.isCollapsed, false);
+            sel.selectAllChildren(nodes.div);
+            t.equal(sel.rangeCount, 1);
+            t.strictEqual(sel.anchorNode, nodes.div);
+            t.equal(sel.anchorOffset, 0);
+            t.strictEqual(sel.focusNode, nodes.div);
+            t.equal(sel.focusOffset, nodes.div.childNodes.length);
+            t.strictEqual(sel.isCollapsed, false);
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("HTML5 toString script contents test", function(t) {
+        QUnit.testEx("HTML5 toString script contents test", function(t) {
             var div = doc.createElement("div");
             div.innerHTML = 'one<script type="text/javascript">var x = 1;</script>two';
             doc.body.appendChild(div);
@@ -398,11 +419,11 @@ function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectio
             var rangeText = range.toString();
             var selText = sel.toString();
             doc.body.removeChild(div);
-            t.assertEquals(rangeText, "onevar x = 1;two");
-            t.assertEquals(selText, "onevar x = 1;two");
+            t.equal(rangeText, "onevar x = 1;two");
+            t.equal(selText, "onevar x = 1;two");
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-        s.test("HTML5 toString display:none contents test", function(t) {
+        QUnit.testEx("HTML5 toString display:none contents test", function(t) {
             var div = doc.createElement("div");
             div.innerHTML = 'one<div style="display: none">two</div>three';
             doc.body.appendChild(div);
@@ -414,290 +435,296 @@ function testSelectionAndRangeCreators(wins, winName, selectionCreator, selectio
             var rangeText = range.toString();
             var selText = sel.toString();
             doc.body.removeChild(div);
-            t.assertEquals(rangeText, "onetwothree");
-            t.assertEquals(selText, "onetwothree");
+            t.equal(rangeText, "onetwothree");
+            t.equal(selText, "onetwothree");
         }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
         var testSelection = selectionCreator(window);
         var testRange = rangeCreator(document);
 
         if (testSelection.containsNode && testRange.containsNode) {
-            s.test("containsNode test", function(t) {
+            QUnit.testEx("containsNode test", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 1);
-                range.setEnd(t.nodes.plainText, 2);
+                range.setStart(nodes.plainText, 1);
+                range.setEnd(nodes.plainText, 2);
                 sel.addRange(range);
-                t.assertFalse(sel.containsNode(t.nodes.plainText, false));
-                t.assertTrue(sel.containsNode(t.nodes.plainText, true));
+                t.assertFalse(sel.containsNode(nodes.plainText, false));
+                t.assertTrue(sel.containsNode(nodes.plainText, true));
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
         }
 
-        if (testSelection.extend) {
-            s.test("extend test", function(t) {
+        function isNativeSel(selectionCreator, method: string): selectionCreator is (win) => Selection  {
+            return testSelection[method];
+        }
+        function isWrappedSel(selectionCreator, ...methods: string[]): selectionCreator is (win) => WrappedSelection  {
+            return methods.every(m => testSelection[m]);
+        }
+        if (isNativeSel(selectionCreator, 'extend')) {
+            QUnit.testEx("extend test", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 1);
-                range.setEnd(t.nodes.plainText, 2);
+                range.setStart(nodes.plainText, 1);
+                range.setEnd(nodes.plainText, 2);
                 sel.addRange(range);
-                sel.extend(t.nodes.boldText, 1);
-                t.assertEquals(sel.rangeCount, 1);
-                t.assertEquivalent(sel.anchorNode, t.nodes.plainText);
-                t.assertEquals(sel.anchorOffset, 1);
-                t.assertEquivalent(sel.focusNode, t.nodes.boldText);
-                t.assertEquals(sel.focusOffset, 1);
-                t.assertEquivalent(sel.isCollapsed, false);
+                sel.extend(nodes.boldText, 1);
+                t.equal(sel.rangeCount, 1);
+                t.strictEqual(sel.anchorNode, nodes.plainText);
+                t.equal(sel.anchorOffset, 1);
+                t.strictEqual(sel.focusNode, nodes.boldText);
+                t.equal(sel.focusOffset, 1);
+                t.strictEqual(sel.isCollapsed, false);
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-            s.test("extend backwards test", function(t) {
+            QUnit.testEx("extend backwards test", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 2);
-                range.setEnd(t.nodes.plainText, 3);
+                range.setStart(nodes.plainText, 2);
+                range.setEnd(nodes.plainText, 3);
                 sel.addRange(range);
-                sel.extend(t.nodes.plainText, 1);
-                t.assertEquals(sel.rangeCount, 1);
-                t.assertEquivalent(sel.anchorNode, t.nodes.plainText);
-                t.assertEquals(sel.anchorOffset, 2);
-                t.assertEquivalent(sel.focusNode, t.nodes.plainText);
-                t.assertEquals(sel.focusOffset, 1);
-                t.assertEquivalent(sel.isCollapsed, false);
-                t.assertEquivalent(sel.toString(), "l");
+                sel.extend(nodes.plainText, 1);
+                t.equal(sel.rangeCount, 1);
+                t.strictEqual(sel.anchorNode, nodes.plainText);
+                t.equal(sel.anchorOffset, 2);
+                t.strictEqual(sel.focusNode, nodes.plainText);
+                t.equal(sel.focusOffset, 1);
+                t.strictEqual(sel.isCollapsed, false);
+                t.strictEqual(sel.toString(), "l");
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
         }
 
-        function testRefresh(name, testRangeCreator) {
-            s.test("Refresh test: " + name, function(t) {
-                var sel = selectionCreator(win);
-                if (sel.refresh) {
+        function testRefresh(name: string, testRangeCreator: (t: Assert) => AbstractRange) {
+            if (isWrappedSel(selectionCreator, 'refresh')) {
+                QUnit.test("Refresh test: " + name, function(t) {
+                    const sel = selectionCreator(win);
                     var range = testRangeCreator(t);
                     sel.removeAllRanges();
                     sel.addRange(range);
                     sel.refresh();
-                    t.assertEquals(sel.rangeCount, 1);
+                    t.equal(sel.rangeCount, 1);
                     var selRange = sel.getRangeAt(0);
-                    t.assert(DomRange.rangesEqual(range, selRange), "Ranges not equal. Original: " + DomRange.inspect(range) + ", refreshed selection range: " + DomRange.inspect(selRange));
-                }
-            });
+                    t.ok(DomRange.rangesEqual(range, selRange), "Ranges not equal. Original: " + DomRange.inspect(range) + ", refreshed selection range: " + DomRange.inspect(selRange));
+                });
+            }
         }
 
         testRefresh("uncollapsed selection mid text node", function(t) {
             var range = rangeCreator(doc);
-            range.setStart(t.nodes.plainText, 1);
-            range.setEnd(t.nodes.plainText, 2);
+            range.setStart(nodes.plainText, 1);
+            range.setEnd(nodes.plainText, 2);
             return range;
         });
 
         testRefresh("uncollapsed selection start of text node", function(t) {
             var range = rangeCreator(doc);
-            range.setStart(t.nodes.boldAndItalicText, 0);
-            range.setEnd(t.nodes.boldAndItalicText, 1);
+            range.setStart(nodes.boldAndItalicText, 0);
+            range.setEnd(nodes.boldAndItalicText, 1);
             return range;
         });
 
         testRefresh("uncollapsed selection end of text node", function(t) {
             var range = rangeCreator(doc);
-            range.setStart(t.nodes.boldAndItalicText, t.nodes.boldAndItalicText.length - 1);
-            range.setEnd(t.nodes.boldAndItalicText, t.nodes.boldAndItalicText.length);
+            range.setStart(nodes.boldAndItalicText, nodes.boldAndItalicText.length - 1);
+            range.setEnd(nodes.boldAndItalicText, nodes.boldAndItalicText.length);
             return range;
         });
 
         testRefresh("collapsed selection mid text node", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.boldAndItalicText, 1);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.boldAndItalicText, 1);
             range.collapse(true);
             return range;
         });
 
         testRefresh("collapsed selection start of text node", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.boldAndItalicText, 0);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.boldAndItalicText, 0);
             range.collapse(true);
             return range;
         });
 
         testRefresh("collapsed selection end of text node", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.boldAndItalicText, t.nodes.boldAndItalicText.length);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.boldAndItalicText, nodes.boldAndItalicText.length);
             range.collapse(true);
             return range;
         });
 
         testRefresh("collapsed selection immediately prior to element", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.b, 1);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.b, 1);
             range.collapse(true);
             return range;
         });
 
         testRefresh("collapsed selection immediately after element", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.b, 2);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.b, 2);
             range.collapse(true);
             return range;
         });
 
         testRefresh("collapsed selection at offset 0 in element", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.b, 0);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.b, 0);
             range.collapse(true);
             return range;
         });
 
         testRefresh("collapsed selection encompassing element", function(t) {
             var range = rangeCreator(doc);
-            t.nodes.div.contentEditable = true;
-            range.setStart(t.nodes.b, 1);
-            range.setEnd(t.nodes.b, 2);
+            nodes.div.contentEditable = 'true';
+            range.setStart(nodes.b, 1);
+            range.setEnd(nodes.b, 2);
             return range;
         });
 
-        s.test("Refresh check for changes test", function(t) {
-            var sel = selectionCreator(win);
-            if (sel.refresh && sel.nativeSelection.selectAllChildren) {
+    if (isWrappedSel(selectionCreator, 'refresh')) {
+        var sel = selectionCreator(win);
+        if (sel.nativeSelection.selectAllChildren) {
+            QUnit.test("Refresh check for changes test", function (t) {
                 t.assertFalse(sel.refresh(true));
 
-                sel.nativeSelection.selectAllChildren(t.nodes.div);
+                sel.nativeSelection.selectAllChildren(nodes.div);
                 t.assertTrue(sel.refresh(true));
                 t.assertFalse(sel.refresh(true));
 
                 sel.collapseToEnd();
                 t.assertFalse(sel.refresh(true));
-            }
-        });
+            });
+        }
+    }
 
         // The behaviour tested by the next two tests is the opposite of what is in the spec (see
         // https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#dom-selection-addrange), but Rangy simply cannot
         // respect the spec in this instance because many browsers (WebKit) mangle ranges as they are added to the
         // selection.
-        s.test("Selection and range independence: addRange", function(t) {
+    if (isWrappedSel(selectionCreator, 'setSingleRange')) {
+        QUnit.test("Selection and range independence: addRange", function (t) {
             var sel = selectionCreator(win);
-            if (sel.setSingleRange) {
-                var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 0);
-                range.collapse(true);
-                sel.setSingleRange(range);
-                range.selectNodeContents(t.nodes.plainText);
-                sel.refresh();
-                t.assert(sel.isCollapsed);
-            }
+            var range = rangeCreator(doc);
+            range.setStart(nodes.plainText, 0);
+            range.collapse(true);
+            sel.setSingleRange(range);
+            range.selectNodeContents(nodes.plainText);
+            sel.refresh();
+            t.ok(sel.isCollapsed);
         });
 
-        s.test("Selection and range independence: getRangeAt", function(t) {
+        QUnit.test("Selection and range independence: getRangeAt", function(t) {
             var sel = selectionCreator(win);
-            if (sel.setSingleRange) {
-                var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 0);
-                range.collapse(true);
-                sel.setSingleRange(range);
-                sel.refresh();
+            var range = rangeCreator(doc);
+            range.setStart(nodes.plainText, 0);
+            range.collapse(true);
+            sel.setSingleRange(range);
+            sel.refresh();
 
-                var selRange = sel.getRangeAt(0);
-                selRange.selectNodeContents(t.nodes.div);
-                sel.refresh();
-                t.assert(sel.isCollapsed);
-            }
+            var selRange = sel.getRangeAt(0);
+            selRange.selectNodeContents(nodes.div);
+            sel.refresh();
+            t.ok(sel.isCollapsed);
         });
+    }
 
-        if (testSelection.toHtml) {
-            s.test("toHtml", function(t) {
+        if (isWrappedSel(selectionCreator, 'toHtml')) {
+            QUnit.test("toHtml", function(t) {
                 var sel = selectionCreator(win);
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 0);
-                range.setEnd(t.nodes.plainText, t.nodes.plainText.length);
+                range.setStart(nodes.plainText, 0);
+                range.setEnd(nodes.plainText, nodes.plainText.length);
                 sel.removeAllRanges();
                 sel.addRange(range);
-                t.assertEquals(sel.toHtml(), t.nodes.plainText.data);
+                t.equal(sel.toHtml(), nodes.plainText.data);
             });
         }
 
+/*
         if (testSelection.getNativeTextRange) {
-            s.test("getNativeTextRange", function(t) {
+            QUnit.test("getNativeTextRange", function(t) {
                 var sel = selectionCreator(win);
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 1);
-                range.setEnd(t.nodes.plainText, 3);
+                range.setStart(nodes.plainText, 1);
+                range.setEnd(nodes.plainText, 3);
                 sel.setSingleRange(range);
                 var textRange = sel.getNativeTextRange();
-                t.assertEquals(textRange.text, "la");
-                t.assertEquals(textRange.parentElement(), t.nodes.div);
+                t.equal(textRange.text, "la");
+                t.equal(textRange.parentElement(), nodes.div);
             });
         }
-
-        if (testSelection.saveRanges && testSelection.restoreRanges) {
-            s.test("saveRanges and restoreRanges simple", function(t) {
+*/
+        if (isWrappedSel(selectionCreator, 'saveRanges', 'restoreRanges')) {
+            QUnit.test("saveRanges and restoreRanges simple", function(t) {
                 var sel = selectionCreator(win);
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 1);
-                range.setEnd(t.nodes.plainText, 3);
+                range.setStart(nodes.plainText, 1);
+                range.setEnd(nodes.plainText, 3);
                 sel.setSingleRange(range);
                 var savedRanges = sel.saveRanges();
-                sel.selectAllChildren(t.nodes.div);
+                sel.selectAllChildren(nodes.div);
                 sel.restoreRanges(savedRanges);
-                t.assertEquals(sel.anchorNode, t.nodes.plainText);
-                t.assertEquals(sel.anchorOffset, 1);
-                t.assertEquals(sel.focusNode, t.nodes.plainText);
-                t.assertEquals(sel.focusOffset, 3);
+                t.equal(sel.anchorNode, nodes.plainText);
+                t.equal(sel.anchorOffset, 1);
+                t.equal(sel.focusNode, nodes.plainText);
+                t.equal(sel.focusOffset, 3);
             });
 
-            s.test("saveRanges and restoreRanges backwards", function(t) {
+            QUnit.test("saveRanges and restoreRanges backwards", function(t) {
                 var sel = selectionCreator(win);
                 var range = rangeCreator(doc);
-                range.setStart(t.nodes.plainText, 1);
-                range.setEnd(t.nodes.plainText, 3);
+                range.setStart(nodes.plainText, 1);
+                range.setEnd(nodes.plainText, 3);
                 sel.setSingleRange(range, "backward");
                 var savedRanges = sel.saveRanges();
-                sel.selectAllChildren(t.nodes.div);
+                sel.selectAllChildren(nodes.div);
                 sel.restoreRanges(savedRanges);
-                t.assertEquals(sel.anchorNode, t.nodes.plainText);
-                t.assertEquals(sel.anchorOffset, 3);
-                t.assertEquals(sel.focusNode, t.nodes.plainText);
-                t.assertEquals(sel.focusOffset, 1);
+                t.equal(sel.anchorNode, nodes.plainText);
+                t.equal(sel.anchorOffset, 3);
+                t.equal(sel.focusNode, nodes.plainText);
+                t.equal(sel.focusOffset, 1);
             });
 
             if (rangy.features.selectionSupportsMultipleRanges) {
-                s.test("saveRanges and restoreRanges multiple ranges", function(t) {
+                QUnit.test("saveRanges and restoreRanges multiple ranges", function(t) {
                     var sel = selectionCreator(win);
 
                     var range = rangeCreator(doc);
-                    range.setStart(t.nodes.plainText, 1);
-                    range.setEnd(t.nodes.plainText, 3);
+                    range.setStart(nodes.plainText, 1);
+                    range.setEnd(nodes.plainText, 3);
 
                     var range2 = rangeCreator(doc);
-                    range2.setStart(t.nodes.boldText, 1);
-                    range2.setEnd(t.nodes.boldText, 2);
+                    range2.setStart(nodes.boldText, 1);
+                    range2.setEnd(nodes.boldText, 2);
 
                     sel.setRanges([range, range2]);
                     var savedRanges = sel.saveRanges();
-                    sel.selectAllChildren(t.nodes.div);
+                    sel.selectAllChildren(nodes.div);
                     sel.restoreRanges(savedRanges);
 
-                    t.assertEquals(sel.rangeCount, 2);
+                    t.equal(sel.rangeCount, 2);
 
                     var selRange1 = sel.getRangeAt(0);
-                    t.assertEquals(selRange1.startContainer, t.nodes.plainText);
-                    t.assertEquals(selRange1.startOffset, 1);
-                    t.assertEquals(selRange1.endContainer, t.nodes.plainText);
-                    t.assertEquals(selRange1.endOffset, 3);
+                    t.equal(selRange1.startContainer, nodes.plainText);
+                    t.equal(selRange1.startOffset, 1);
+                    t.equal(selRange1.endContainer, nodes.plainText);
+                    t.equal(selRange1.endOffset, 3);
 
                     var selRange2 = sel.getRangeAt(1);
-                    t.assertEquals(selRange2.startContainer, t.nodes.boldText);
-                    t.assertEquals(selRange2.startOffset, 1);
-                    t.assertEquals(selRange2.endContainer, t.nodes.boldText);
-                    t.assertEquals(selRange2.endOffset, 2);
+                    t.equal(selRange2.startContainer, nodes.boldText);
+                    t.equal(selRange2.startOffset, 1);
+                    t.equal(selRange2.endContainer, nodes.boldText);
+                    t.equal(selRange2.endOffset, 2);
                 });
             }
         }
-    }, false);
 }
 
 var iframeWin = [];
@@ -747,21 +774,19 @@ if (hasNativeDomRange) {
 
 var iframe;
 
-xn.test.suite("getIframeSelection test", function(s) {
-    xn.addEventListener(window, "load", function() {
-        s.test("getIframeSelection test", function(t) {
-            rangy.init();
-            var sel = rangy.getIframeSelection(iframe);
-            var range = rangy.createIframeRange(iframe);
-            range.selectNodeContents(range.commonAncestorContainer.body);
+QUnit.module("getIframeSelection test");
+        QUnit.test("getIframeSelection test", function(t) {
+            // getIframeSelection is removed in rangy2
+            const sel = rangy.getSelection(iframe);
+            // createIframeRange is removed in rangy2
+            const range = rangy.createRange(iframe);
+            range.selectNodeContents((range.commonAncestorContainer as Document).body);
             sel.setSingleRange(range);
-            t.assertEquals(sel.toString(), "content");
+            t.equal(sel.toString(), "content");
         });
-    });
-});
 
 var iframeEl;
-xn.addEventListener(window, "load", function() {
+window.addEventListener("load", function() {
     // Do it in an iframe
     iframeEl = document.body.appendChild(document.createElement("iframe"));
     var win = iframeEl.contentWindow;
@@ -774,74 +799,74 @@ xn.addEventListener(window, "load", function() {
 });
 
 var hasRangySelectionPrototype = "rangePrototype" in rangy;
+/*
 rangy.selectionPrototype.preInitTest = function() {
     return true;
 };
-
-xn.test.suite("Miscellaneous selection tests", function(s) {
-    s.test("rangy.selectionPrototype existence test", function(t) {
-        t.assert(hasRangySelectionPrototype);
+*/
+QUnit.module("Miscellaneous selection tests");
+    QUnit.skip("rangy.selectionPrototype existence test", function(t) {
+        t.ok(hasRangySelectionPrototype);
+    });
+/*
+    QUnit.test("Selection prototype pre-init extension", function(t) {
+        t.ok(rangy.getSelection().preInitTest(), "test");
     });
 
-    s.test("Selection prototype pre-init extension", function(t) {
-        t.assert(rangy.getSelection().preInitTest(), "test");
-    });
-
-    s.test("Selection prototype extension", function(t) {
+    QUnit.test("Selection prototype extension", function(t) {
         rangy.selectionPrototype.fooBar = "test";
 
-        t.assertEquals(rangy.getSelection().fooBar, "test");
+        t.equal(rangy.getSelection().fooBar, "test");
     });
-
-    s.test("getSelection() parameter tests", function(t) {
+*/
+    QUnit.test("getSelection() parameter tests", function(t) {
         var sel = rangy.getSelection();
-        t.assertEquals(sel.win, window);
+        t.equal(sel.win, window);
 
         sel = rangy.getSelection(window);
-        t.assertEquals(sel.win, window);
+        t.equal(sel.win, window);
 
         sel = rangy.getSelection(document);
-        t.assertEquals(sel.win, window);
+        t.equal(sel.win, window);
 
         sel = rangy.getSelection(document.body);
-        t.assertEquals(sel.win, window);
+        t.equal(sel.win, window);
 
         sel = rangy.getSelection(document.firstChild);
-        t.assertEquals(sel.win, window);
+        t.equal(sel.win, window);
 
         sel = rangy.getSelection(sel);
-        t.assertEquals(sel.win, window);
+        t.equal(sel.win, window);
 
-        t.assertError(function() {
-            sel = rangy.getSelection({});
+        t.throws(function() {
+            sel = rangy.getSelection({} as any);
         });
 
         if (rangy.features.implementsWinGetSelection) {
-            t.assertError(function() {
-                sel = rangy.getSelection(window.getSelection());
+            t.throws(function() {
+                sel = rangy.getSelection(window.getSelection() as any);
             });
         }
     });
 
-    s.test("iframe createRange() parameter tests", function(t) {
+    QUnit.test("iframe createRange() parameter tests", function(t) {
         var win = rangy.dom.getIframeWindow(iframeEl);
 
         var sel = rangy.getSelection(iframeEl);
-        t.assertEquals(sel.win, win);
+        t.equal(sel.win, win);
 
         sel = rangy.getSelection(win);
-        t.assertEquals(sel.win, win);
+        t.equal(sel.win, win);
 
         sel = rangy.getSelection(win.document);
-        t.assertEquals(sel.win, win);
+        t.equal(sel.win, win);
 
         sel = rangy.getSelection(win.document.body);
-        t.assertEquals(sel.win, win);
+        t.equal(sel.win, win);
 
         sel = rangy.getSelection(win.document.firstChild);
-        t.assertEquals(sel.win, win);
+        t.equal(sel.win, win);
 
         sel = rangy.getSelection(sel);
-        t.assertEquals(sel.win, win);
+        t.equal(sel.win, win);
     });
-}, false);
