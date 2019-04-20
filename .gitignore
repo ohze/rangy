@@ -11,7 +11,7 @@ node_modules
 *.ts.map
 *.tsbuildinfo
 *.test.js
-*.test.iife.js
+*.test.amd.js
 *.test.d.ts
 /test/*.d.ts
 !/test/typings.d.ts

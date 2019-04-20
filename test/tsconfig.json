@@ -1,12 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "umd",
+    "target": "esnext",
+    "module": "esnext",
     "moduleResolution": "node",
     "sourceMap": true,
     "stripInternal": true,
-    "declaration": true,
-    "declarationMap": true,
     "baseUrl": ".",
     "paths": {
       "rangy2": ["../src/core"],

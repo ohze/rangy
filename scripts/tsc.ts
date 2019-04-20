@@ -33,8 +33,9 @@ function writeTsConfig(name: string, es: boolean) {
 
 function tsc(es: boolean): boolean {
     modules.forEach(n => writeTsConfig(n, es));
-    console.log(`$ tsc -b #es=${es}`);
-    const r = spawnSync('tsc', ['-b'], {
+    const args = process.argv.slice(2); //argv[0] is 'node', argv[1] is this script (scripts/tsc.js)
+    console.log(`$ tsc ${args.join(' ')} #es=${es}`);
+    const r = spawnSync('tsc', args, {
         stdio:'inherit',
         cwd: srcDir,
     });
@@ -48,4 +49,6 @@ function main() {
     }
 }
 
+// usage: node [options] scripts/tsc.js [tsc arguments]
+// note: tsc will run in cwd: srcDir
 main();

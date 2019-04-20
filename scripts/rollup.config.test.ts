@@ -9,6 +9,7 @@ import * as glob from 'glob';
 import typescript from 'rollup-plugin-typescript2'
 import {modules, projectRoot} from "./util";
 import {resolve, join} from "path";
+import {ModuleFormat, RollupOptions} from "rollup";
 
 const testDir = resolve(projectRoot, 'test');
 
@@ -16,15 +17,7 @@ const plugins = [
     nodeResolve(),
     commonjs(),
     typescript({
-        tsconfig: resolve(testDir, 'tsconfig.json'),
-        tsconfigOverride: {
-            compilerOptions: {
-                target: "esnext",
-                module: "esnext",
-                declaration: false,
-                declarationMap: false,
-            }
-        }
+        tsconfig: resolve(testDir, 'tsconfig.json')
     }),
 ];
 
@@ -35,23 +28,27 @@ const external = ['rangy2', ...modules.map(n => 'rangy-' + n)];
 const globals = {};
 external.forEach(n => Object.assign(globals, {[n]: 'rangy'}));
 
+function iifeConfig(f: string, format: ModuleFormat = 'iife'): RollupOptions {
+    f = join(testDir, f);
+    return {
+        input: [f],
+        output: {
+            format,
+            file: f.replace(/\.ts$/, format == 'iife'? '.js' : `.${format}.js`),
+            name: 'unnamed',
+            globals,
+            sourcemap: true
+        },
+        external,
+        plugins,
+    }
+}
+
 const configs = glob
-    .sync('**/*.test.ts', {cwd: testDir})
-    .map(f => join(testDir, f))
-    .map((f) => {
-        const n = f.substr(0, f.length - 3); // remove `.ts`
-        return {
-            input: [f],
-            output: {
-                format: 'iife',
-                file: n + '.iife.js',
-                name: 'unnamed',
-                globals,
-                sourcemap: true
-            },
-            external,
-            plugins,
-        }
-    });
+    .sync('**/*.ts', {cwd: testDir})
+    .filter(f => !f.endsWith('.d.ts'))
+    .map(f => iifeConfig(f));
+// push amdTestExampleConfig
+configs.push(iifeConfig("classapplier/index.test.ts", 'amd'));
 
 export default configs;
