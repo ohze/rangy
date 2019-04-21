@@ -72,39 +72,19 @@ export function isSelectionValid() {
     const testRange = createNativeRange(document);
 
     // Obtaining a range from a selection
-const selectionHasAnchorAndFocus =
-    features.selectionHasAnchorAndFocus =
-        util.areHostProperties(testSelection, ["anchorNode", "focusNode", "anchorOffset", "focusOffset"]);
 
-    // Test for existence of native selection extend() method
-const selectionHasExtend =
-    features.selectionHasExtend =
-        isHostMethod(testSelection, "extend");
-
-    // Test if rangeCount exists
-const selectionHasRangeCount =
-    features.selectionHasRangeCount =
-        (typeof testSelection.rangeCount == NUMBER);
-
-const addRangeBackwardToNative = selectionHasExtend
-    ?   function(nativeSelection: Selection, range: AbstractRange) {
+function addRangeBackwardToNative(nativeSelection: Selection, range: AbstractRange) {
             var doc = DomRange.getRangeDocument(range);
             var endRange = createRange(doc);
             endRange.collapseToPoint(range.endContainer, range.endOffset);
             nativeSelection.addRange(getNativeRange(endRange));
             nativeSelection.extend(range.startContainer, range.startOffset);
         }
-    :   null;
 
     // Selection collapsedness
-let selectionIsCollapsed =
-    selectionHasAnchorAndFocus
-        ? function(sel) {
+function selectionIsCollapsed(sel) {
             return sel.anchorNode === sel.focusNode && sel.anchorOffset === sel.focusOffset;
         }
-        : function(sel) {
-            return sel.rangeCount ? sel.getRangeAt(sel.rangeCount - 1).collapsed : false;
-        };
 
     function updateAnchorAndFocusFromRange(sel: WrappedSelection, range, backward) {
         const anchorPrefix = backward ? "end" : "start", focusPrefix = backward ? "start" : "end";
@@ -145,21 +125,20 @@ let selectionIsCollapsed =
         return nativeRange;
     }
 
-    let getSelectionRangeAt: undefined | ((sel: Selection|RangySel, index: number) => RangyRange | Range | null);
+    const getSelectionRangeAt: ((sel: Selection|RangySel, index: number) => RangyRange | Range | null) =
 
-    if (isHostMethod(testSelection, "getRangeAt")) {
+    isHostMethod(testSelection, "getRangeAt")
         // try/catch is present because getRangeAt() must have thrown an error in some browser and some situation.
         // Unfortunately, I didn't write a comment about the specifics and am now scared to take it out. Let that be a
         // lesson to us all, especially me.
-        getSelectionRangeAt = function(sel, index) {
+        ? function(sel, index) {
             try {
                 return sel.getRangeAt(index);
             } catch (ex) {
                 return null;
             }
-        };
-    } else if (selectionHasAnchorAndFocus) {
-        getSelectionRangeAt = function(sel, index) {
+        }
+        : function(sel, index) {
             var doc = getDocument(sel.anchorNode);
             var range = createRange(doc);
             range.setStartAndEnd(sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset);
@@ -172,7 +151,6 @@ let selectionIsCollapsed =
 
             return range;
         };
-    }
 
     function deleteProperties(sel: WrappedSelection) {
         sel.win = sel.anchorNode = sel.focusNode = sel._ranges = null;
@@ -247,7 +225,7 @@ let selectionIsCollapsed =
                     updateEmptySelection(sel);
                 }
         };
-    } else if (selectionHasAnchorAndFocus &&
+    } else if (
         typeof testSelection.isCollapsed == BOOLEAN &&
         typeof testRange.collapsed == BOOLEAN)
     {
@@ -269,62 +247,6 @@ let selectionIsCollapsed =
     }
 
 // function createWrappedSelection<TBase extends Constructor<WrappedSelBase>>(Base: TBase) {
-        function addRangeBackward(sel: WrappedSelection, range: AbstractRange) {
-            addRangeBackwardToNative(sel.nativeSelection, range);
-            sel.refresh();
-        };
-        const addRange = selectionHasRangeCount
-            ? function(this: WrappedSelection, range: RangyRangeEx, direction?: string|boolean): void {
-                    if (isDirectionBackward(direction) && selectionHasExtend) {
-                        addRangeBackward(this, range);
-                    } else {
-                        const previousRangeCount = this.rangeCount;
-                        if (! features.selectionSupportsMultipleRanges && previousRangeCount > 0) {
-                            // https://www.chromestatus.com/features/6680566019653632
-                            return;
-                        }
-                        // Clone the native range so that changing the selected range does not affect the selection.
-                        // This is contrary to the spec but is the only way to achieve consistency between browsers. See
-                        // issue 80.
-                        var clonedNativeRange = getNativeRange(range).cloneRange();
-                        try {
-                            this.nativeSelection.addRange(clonedNativeRange);
-                        } catch (ex) {
-                            log.error("Native addRange threw error '" + ex + "' with range " + DomRange.inspect(clonedNativeRange), ex);
-                        }
-
-                        // Check whether adding the range was successful
-                        this.rangeCount = this.nativeSelection.rangeCount;
-
-                        if (this.rangeCount == previousRangeCount + 1) {
-                            // The range was added successfully
-
-                            // Check whether the range that we added to the selection is reflected in the last range extracted from
-                            // the selection
-                            if (config.checkSelectionRanges) {
-                                var nativeRange = getSelectionRangeAt(this.nativeSelection, this.rangeCount - 1) as Range;
-                                if (nativeRange && !rangesEqual(nativeRange, range)) {
-                                    // Happens in WebKit with, for example, a selection placed at the start of a text node
-                                    range = new WrappedRange(nativeRange);
-                                }
-                            }
-                            this._ranges[this.rangeCount - 1] = range;
-                            updateAnchorAndFocusFromRange(this, range, selectionIsBackward(this.nativeSelection));
-                            this.isCollapsed = selectionIsCollapsed(this);
-                        } else {
-                            // The range was not added successfully. The simplest thing is to refresh
-                            this.refresh();
-                        }
-                    }
-            }
-            : function(this: WrappedSelection, range: RangyRangeEx, direction?: string|boolean): void {
-                if (isDirectionBackward(direction) && selectionHasExtend) {
-                    addRangeBackward(this, range);
-                } else {
-                    this.nativeSelection.addRange(getNativeRange(range));
-                    this.refresh();
-                }
-            };
 
     // Removal of a single range
     function removeRangeManually(sel: WrappedSelection, range) {
@@ -409,7 +331,50 @@ let selectionIsCollapsed =
         empty = this.removeAllRanges;
 
         //if (selectionHasRangeCount) {
-        addRange = addRange.bind(this);
+        addRange(range: RangyRangeEx, direction?: string|boolean): void {
+                    if (isDirectionBackward(direction)) {
+                        addRangeBackwardToNative(this.nativeSelection, range);
+                        this.refresh();
+                    } else {
+                        const previousRangeCount = this.rangeCount;
+                        if (! features.selectionSupportsMultipleRanges && previousRangeCount > 0) {
+                            // https://www.chromestatus.com/features/6680566019653632
+                            return;
+                        }
+                        // Clone the native range so that changing the selected range does not affect the selection.
+                        // This is contrary to the spec but is the only way to achieve consistency between browsers. See
+                        // issue 80.
+                        var clonedNativeRange = getNativeRange(range).cloneRange();
+                        try {
+                            this.nativeSelection.addRange(clonedNativeRange);
+                        } catch (ex) {
+                            log.error("Native addRange threw error '" + ex + "' with range " + DomRange.inspect(clonedNativeRange), ex);
+                        }
+
+                        // Check whether adding the range was successful
+                        this.rangeCount = this.nativeSelection.rangeCount;
+
+                        if (this.rangeCount == previousRangeCount + 1) {
+                            // The range was added successfully
+
+                            // Check whether the range that we added to the selection is reflected in the last range extracted from
+                            // the selection
+                            if (config.checkSelectionRanges) {
+                                var nativeRange = getSelectionRangeAt(this.nativeSelection, this.rangeCount - 1) as Range;
+                                if (nativeRange && !rangesEqual(nativeRange, range)) {
+                                    // Happens in WebKit with, for example, a selection placed at the start of a text node
+                                    range = new WrappedRange(nativeRange);
+                                }
+                            }
+                            this._ranges[this.rangeCount - 1] = range;
+                            updateAnchorAndFocusFromRange(this, range, selectionIsBackward(this.nativeSelection));
+                            this.isCollapsed = selectionIsCollapsed(this);
+                        } else {
+                            // The range was not added successfully. The simplest thing is to refresh
+                            this.refresh();
+                        }
+                    }
+            }
 
         setRanges(ranges: WrappedRange[]): void {
                 this.removeAllRanges();

@@ -18,3 +18,11 @@ declare global {
                tearDown: (assert: Assert) => void): void;
     }
 }
+
+declare module "bowser" {
+    namespace Parser {
+        interface Parser {
+            isEngine(engineName: string): boolean;
+        }
+    }
+}

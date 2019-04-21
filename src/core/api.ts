@@ -16,13 +16,16 @@ export interface Features {
      * Test for IE's crash (IE 6/7) or exception (IE >= 8) when a reference to garbage-collected text node is queried
      * rangy2 don't support IE < 9. I have tested in browserstack.com with updated IE => not crash */
     crashyTextNodes: false;
-    /** Always use window.getSelection */
+    /** @deprecated Always use window.getSelection */
     implementsWinGetSelection: true;
-    /** document.selection should only be used for IE < 9 which rangy2 don't support */
+    /** @deprecated document.selection should only be used for IE < 9 which rangy2 don't support */
     implementsDocSelection: false;
-    selectionHasAnchorAndFocus?: boolean;
-    selectionHasExtend?: boolean;
-    selectionHasRangeCount?: boolean;
+    /** @deprecated Always true */
+    selectionHasAnchorAndFocus: true;
+    /** @deprecated Always true */
+    selectionHasExtend: true;
+    /** @deprecated Always true */
+    selectionHasRangeCount: true;
     selectionSupportsMultipleRanges: boolean;
     implementsControlRange: false;
     collapsedNonEditableSelectionsSupported: boolean;
@@ -34,6 +37,9 @@ export const features: Features = {
     crashyTextNodes: false,
     implementsWinGetSelection: true,
     implementsDocSelection: false,
+    selectionHasAnchorAndFocus: true,
+    selectionHasExtend: true,
+    selectionHasRangeCount: true,
     selectionSupportsMultipleRanges: window.navigator.userAgent.indexOf("Firefox") > -1,
     implementsControlRange: false,
     collapsedNonEditableSelectionsSupported: true,

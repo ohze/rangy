@@ -1,4 +1,4 @@
-import {WrappedSelection} from "rangy2";
+import {RangyRangeEx, WrappedSelection} from "rangy2";
 
 var hasNativeGetSelection = "getSelection" in window;
 var hasNativeDomRange = "createRange" in document;
@@ -488,7 +488,7 @@ function testSelectionAndRangeCreators(wins, winName,
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
         }
 
-        function testRefresh(name: string, testRangeCreator: (t: Assert) => AbstractRange) {
+        function testRefresh(name: string, testRangeCreator: (t: Assert) => RangyRangeEx) {
             if (isWrappedSel(selectionCreator, 'refresh')) {
                 QUnit.test("Refresh test: " + name, function(t) {
                     const sel = selectionCreator(win);
