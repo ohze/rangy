@@ -34,7 +34,7 @@ export const features: Features = {
     crashyTextNodes: false,
     implementsWinGetSelection: true,
     implementsDocSelection: false,
-    selectionSupportsMultipleRanges: false,
+    selectionSupportsMultipleRanges: window.navigator.userAgent.indexOf("Firefox") > -1,
     implementsControlRange: false,
     collapsedNonEditableSelectionsSupported: true,
 };
