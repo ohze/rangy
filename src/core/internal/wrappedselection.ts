@@ -138,8 +138,8 @@ let selectionIsCollapsed =
             nativeRange.setStart(range.startContainer, range.startOffset);
         } else if (range instanceof WrappedRange) {
             nativeRange = range.nativeRange;
-        // } else if (features.implementsDomRange && ((range as any) instanceof dom.getWindow(range.startContainer).Range)) {
-        } else if (range instanceof Range) {
+        } else if (features.implementsDomRange &&
+            ((range as any) instanceof (dom.getWindow(range.startContainer) as any).Range)) {
             nativeRange = range;
         }
         return nativeRange;
