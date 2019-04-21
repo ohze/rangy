@@ -207,9 +207,11 @@ function testSelectionAndRangeCreators(wins, winName,
                 // Rangy doesn't do this either because it sometimes needs to change the range boundary points to make
                 // them valid selection boundaries.
                 //t.strictEqual(range2, sel.getRangeAt(0));
-                sel.removeRange(range1);
-                t.equal(sel.rangeCount, 1);
+
+                // https://www.chromestatus.com/features/6680566019653632
                 sel.removeRange(range2);
+                t.equal(sel.rangeCount, 1);
+                sel.removeRange(range1);
                 t.equal(sel.rangeCount, 0);
                 rangy.config.checkSelectionRanges = false;
             }, setUp_noRangeCheck, tearDown_noRangeCheck);

@@ -278,12 +278,10 @@ let selectionIsCollapsed =
                     if (isDirectionBackward(direction) && selectionHasExtend) {
                         addRangeBackward(this, range);
                     } else {
-                        var previousRangeCount;
-                        if (features.selectionSupportsMultipleRanges) {
-                            previousRangeCount = this.rangeCount;
-                        } else {
-                            this.removeAllRanges();
-                            previousRangeCount = 0;
+                        const previousRangeCount = this.rangeCount;
+                        if (! features.selectionSupportsMultipleRanges && previousRangeCount > 0) {
+                            // https://www.chromestatus.com/features/6680566019653632
+                            return;
                         }
                         // Clone the native range so that changing the selected range does not affect the selection.
                         // This is contrary to the spec but is the only way to achieve consistency between browsers. See
