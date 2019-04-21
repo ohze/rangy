@@ -65,16 +65,7 @@ function testRangeCreator(docs: Document[], docName, rangeCreator: RangeCreator,
             var div2Text = div2.appendChild(doc.createTextNode("Second div"));
             doc.body.appendChild(div2);
 
-            nodes = {
-                div: div,
-                plainText: plainText,
-                b: b,
-                boldText: boldText,
-                i: i,
-                boldAndItalicText: boldAndItalicText,
-                div2: div2,
-                div2Text: div2Text
-            };
+            nodes = {div, plainText, b, boldText, i, boldAndItalicText, div2, div2Text};
         },
         afterEach: function() {
             doc.body.removeChild(nodes.div);
