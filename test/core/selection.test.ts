@@ -250,7 +250,7 @@ function testSelectionAndRangeCreators(wins, winName,
                 t.strictEqual(sel.isCollapsed, true);
             }, setUp_noRangeCheck, tearDown_noRangeCheck);
 
-            QUnit.testEx("Collapse other document test (non-editable)", function(t) {
+            QUnit.skipEx("Collapse other document test (non-editable)", function(t) {
                 var sel = selectionCreator(win);
                 sel.removeAllRanges();
                 var range = rangeCreator(doc);
