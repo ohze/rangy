@@ -13,8 +13,8 @@
  * Build date: %%build:date%%
  */
 
-import * as api from "rangy2";
-import {dom, Module} from "rangy2";
+import * as api from "@rangy/core";
+import {dom, Module} from "@rangy/core";
 const DomPosition = dom.DomPosition,
     isHostMethod = api.util.isHostMethod;
 

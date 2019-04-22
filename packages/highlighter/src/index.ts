@@ -9,9 +9,9 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-import * as api from "rangy2";
-import {WrappedRange, WrappedSelection, dom, RangyRangeEx} from "rangy2";
-import {ClassApplier} from "../classapplier";
+import * as api from "@rangy/core";
+import {WrappedRange, WrappedSelection, dom, RangyRangeEx} from "@rangy/core";
+import {ClassApplier} from "@rangy/classapplier";
 const getBody = dom.getBody;
 
 // const module = new Module("Highlighter", ["ClassApplier"]);

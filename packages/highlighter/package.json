@@ -1,0 +1,52 @@
+{
+  "name": "@rangy/highlighter",
+  "description": "A cross-browser DOM range and selection library",
+  "version": "2.1.0",
+  "author": {
+    "name": "Tim Down",
+    "email": "tim@timdown.co.uk",
+    "url": "http://timdown.co.uk/"
+  },
+  "contributors": [
+    {
+      "name": "Bui Viet Thanh",
+      "email": "thanhbv@sandinh.net",
+      "url": "https://github.com/ohze"
+    }
+  ],
+  "keywords": [
+    "range",
+    "selection",
+    "caret",
+    "DOM"
+  ],
+  "homepage": "https://github.com/ohze/rangy",
+  "bugs": {
+    "url": "https://github.com/ohze/rangy/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ohze/rangy.git"
+  },
+  "main": "lib/bundles/index.umd.js",
+  "module": "lib/esm5/index.js",
+  "es2015": "lib/esm2015/index.js",
+  "typings": "lib/types/types.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "tsc -b ."
+  },
+  "dependencies": {
+    "@rangy/classapplier": "^2.1.0",
+    "@rangy/core": "^2.1.0",
+    "core-js": "^3.0.1",
+    "tslib": "^1.9.3"
+  },
+  "devDependencies": {}
+}

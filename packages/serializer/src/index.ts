@@ -19,8 +19,8 @@ import {crc32} from "./crc32";
 // don't directly import modules from ../core/<module-path>
 // (only import ../core/index)
 // otherwise rollup.config.js/ rangyModulesConfigs will failed!
-import * as api from "rangy2";
-import {dom, Module} from "rangy2";
+import * as api from "@rangy/core";
+import {dom, Module} from "@rangy/core";
 
 const module = new Module("Serializer", ["WrappedSelection"]);
 

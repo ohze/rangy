@@ -12,12 +12,12 @@
  * Version: %%build:version%%
  * Build date: %%build:date%%
  */
-import * as api from "rangy2";
+import * as api from "@rangy/core";
 import {
     WrappedSelection as SelProto,
     DomRange as RangeProto,
     getNativeSelection
-} from "rangy2";
+} from "@rangy/core";
 
 // const module = new Module("Util", ["WrappedSelection"]);
 

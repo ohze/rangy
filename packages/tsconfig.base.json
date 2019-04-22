@@ -14,12 +14,6 @@
     "declaration": true,
     "declarationMap": true,
     "importHelpers": true,
-    "plugins": [
-      {
-        "name": "typescript-tslint-plugin",
-        "alwaysShowRuleFailuresAsWarnings": false
-      }
-    ],
     "composite": true
   }
 }

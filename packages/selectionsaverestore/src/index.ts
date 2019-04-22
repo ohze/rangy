@@ -13,8 +13,8 @@
  * Build date: %%build:date%%
  */
 
-import * as api from "rangy2";
-import {Module, dom, features} from "rangy2";
+import * as api from "@rangy/core";
+import {Module, dom, features} from "@rangy/core";
 
 const removeNode = dom.removeNode;
 

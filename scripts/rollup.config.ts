@@ -1,10 +1,10 @@
 import sourceMaps from 'rollup-plugin-sourcemaps'
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import * as pkg from '../package.json';
+import * as lerna from '../lerna.json';
 import replace from 'rollup-plugin-re';
 import {RollupOptions} from "rollup";
-import {modules, projectRoot} from "./util";
+import {packages, packagesDir} from "./util";
 import {resolve} from "path";
 import { uglify } from 'rollup-plugin-uglify'
 import { terser } from 'rollup-plugin-terser'
@@ -14,7 +14,7 @@ const buildVars = (function() {
     const month = "January,February,March,April,May,June,July,August,September,October,November,December"
         .split(",")[date.getMonth()];
     return {
-        "%%build:version%%": pkg.version,
+        "%%build:version%%": lerna.version,
         "%%build:date%%": date.getDate() + " " + month + " " + date.getFullYear(),
         "%%build:year%%,": date.getFullYear() + ','
     };
@@ -48,10 +48,10 @@ function outputFile(f: string, isProd: boolean) {
 function configsFor(module: string, isProd: boolean): RollupOptions[] {
     // const tsconfig = await import(`${srcDir}/${name}/tsconfig.json`);
     // const outDir = tsconfig.compilerOptions.outDir;
-    const d = resolve(projectRoot, 'dist', module);
+    const d = resolve(packagesDir, module, 'lib');
     const isRangyModule = module !== 'core';
     // Indicate here external modules you don't wanna include in your bundle
-    const external = isRangyModule? ['rangy2'] : [];
+    const external = isRangyModule? ['@rangy/core'] : [];
     return [
         {   input: [`${d}/esm5/index.js`],
             output: {
@@ -60,7 +60,7 @@ function configsFor(module: string, isProd: boolean): RollupOptions[] {
                 name: 'rangy',
                 sourcemap: true,
                 extend: isRangyModule,
-                globals: { rangy2: "rangy" }
+                globals: { "@rangy/core": "rangy" }
             },
             inlineDynamicImports: true,
             external,
@@ -80,7 +80,7 @@ function configsFor(module: string, isProd: boolean): RollupOptions[] {
     ]
 }
 
-const configs = modules.flatMap(m => [
+const configs = packages.flatMap(m => [
     ...configsFor(m, false),
     ...configsFor(m, true)
 ]);

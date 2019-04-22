@@ -7,7 +7,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import * as glob from 'glob';
 import typescript from 'rollup-plugin-typescript2'
-import {modules, projectRoot} from "./util";
+import {packages, projectRoot} from "./util";
 import {resolve, join} from "path";
 import {ModuleFormat, RollupOptions} from "rollup";
 
@@ -22,13 +22,13 @@ const plugins = [
 ];
 
 //all rangy modules are external dependencies to test code
-const external = ['rangy2', ...modules.map(n => 'rangy-' + n)];
+const external = packages.map(n => '@rangy/' + n);
 
 //map all external dependencies to global name 'rangy'
 const globals = {};
 external.forEach(n => Object.assign(globals, {[n]: 'rangy'}));
 
-function iifeConfig(f: string, format: ModuleFormat = 'iife'): RollupOptions {
+function config(f: string, format: ModuleFormat = 'iife'): RollupOptions {
     f = join(testDir, f);
     return {
         input: [f],
@@ -47,8 +47,8 @@ function iifeConfig(f: string, format: ModuleFormat = 'iife'): RollupOptions {
 const configs = glob
     .sync('**/*.ts', {cwd: testDir})
     .filter(f => !f.endsWith('.d.ts'))
-    .map(f => iifeConfig(f));
+    .map(f => config(f));
 // push amdTestExampleConfig
-configs.push(iifeConfig("classapplier/index.test.ts", 'amd'));
+configs.push(config("classapplier/index.test.ts", 'amd'));
 
 export default configs;
