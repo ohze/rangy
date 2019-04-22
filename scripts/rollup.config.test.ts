@@ -7,18 +7,13 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import * as glob from 'glob';
 import typescript from 'rollup-plugin-typescript2'
-import {packages, projectRoot} from "./util";
+import {packages, packagesDir} from "./util";
 import {resolve, join} from "path";
 import {ModuleFormat, RollupOptions} from "rollup";
 
-const testDir = resolve(projectRoot, 'test');
-
-const plugins = [
+const commonPlugins = [
     nodeResolve(),
-    commonjs(),
-    typescript({
-        tsconfig: resolve(testDir, 'tsconfig.json')
-    }),
+    commonjs()
 ];
 
 //all rangy modules are external dependencies to test code
@@ -28,27 +23,37 @@ const external = packages.map(n => '@rangy/' + n);
 const globals = {};
 external.forEach(n => Object.assign(globals, {[n]: 'rangy'}));
 
-function config(f: string, format: ModuleFormat = 'iife'): RollupOptions {
-    f = join(testDir, f);
-    return {
-        input: [f],
-        output: {
-            format,
-            file: f.replace(/\.ts$/, format == 'iife'? '.js' : `.${format}.js`),
-            name: 'unnamed',
-            globals,
-            sourcemap: true
-        },
-        external,
-        plugins,
+function configsFor(module: string) {
+    const cwd = resolve(packagesDir, module, 'test');
+    const plugins = [...commonPlugins, typescript({
+        tsconfig: resolve(cwd, 'tsconfig.json')
+    })];
+    function config(f: string, format: ModuleFormat = 'iife'): RollupOptions {
+        f = join(cwd, f);
+        return {
+            input: [f],
+            output: {
+                format,
+                file: f.replace(/\.ts$/, format == 'iife'? '.js' : `.${format}.js`),
+                name: 'unnamed',
+                globals,
+                sourcemap: true
+            },
+            external,
+            plugins,
+        }
     }
+    const configs = glob
+        .sync('**/*.ts', {cwd})
+        .filter(f => !f.endsWith('.d.ts'))
+        .map(f => config(f));
+
+    if (module == 'classapplier') {
+        // push amdTestExampleConfig
+        configs.push(config("index.test.ts", 'amd'));
+    }
+    return configs;
 }
 
-const configs = glob
-    .sync('**/*.ts', {cwd: testDir})
-    .filter(f => !f.endsWith('.d.ts'))
-    .map(f => config(f));
-// push amdTestExampleConfig
-configs.push(config("classapplier/index.test.ts", 'amd'));
-
-export default configs;
+// export default packages.flatMap(configsFor);
+export default configsFor('core');

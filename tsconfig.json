@@ -3,12 +3,12 @@
     "composite": true
   },
   "references": [
-    { "path": "packages/core"},
-    { "path": "packages/classapplier"},
-    { "path": "packages/highlighter"},
-    { "path": "packages/selectionsaverestore"},
-    { "path": "packages/serializer"},
-    { "path": "packages/util"}
+    { "path": "packages/core/src"},
+    { "path": "packages/classapplier/src"},
+    { "path": "packages/highlighter/src"},
+    { "path": "packages/selectionsaverestore/src"},
+    { "path": "packages/serializer/src"},
+    { "path": "packages/util/src"}
   ],
   "files": []
 }

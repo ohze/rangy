@@ -1,10 +1,10 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "declarationDir": "lib/types",
-    "outDir": "lib/esm2015",
-    "target": "es2018"
+    "declarationDir": "../lib/types",
+    "outDir": "../lib/esm2015"
   },
-  "references": [{"path": "../core"}]
+  "references": [
+    {"path": "../../core/src"}
+  ]
 }

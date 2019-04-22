@@ -13,7 +13,8 @@ node_modules
 *.test.d.ts
 /test/*.d.ts
 !/test/typings.d.ts
-/test/qunit-ex.js*
+/packages/core/test/qunit-ex.js*
+/packages/core/test/qunit-ex.d.ts
 /packages/*/lib/
 !/packages/*/lib/types/types.d.ts
 yarn-error.log

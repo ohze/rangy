@@ -1,4 +1,4 @@
-import * as rangy from "rangy2";
+import * as rangy from "@rangy/core";
 
 QUnit.module("Range");
 

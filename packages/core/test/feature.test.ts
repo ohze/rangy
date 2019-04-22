@@ -1,4 +1,4 @@
-import * as rangy from "rangy2";
+import * as rangy from "@rangy/core";
 import Bowser from "bowser";
 
 const browser = Bowser.getParser(window.navigator.userAgent);
