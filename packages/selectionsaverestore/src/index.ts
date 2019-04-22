@@ -153,7 +153,7 @@ export function saveRanges(ranges, direction) {
         return rangeInfos;
     }
 
-export function saveSelection(win) {
+export function saveSelection(win?) {
         var sel = api.getSelection(win);
         var ranges = sel.getAllRanges();
         var backward = (ranges.length == 1 && sel.isBackward());

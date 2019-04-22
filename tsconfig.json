@@ -15,7 +15,8 @@
     { "path": "packages/core/test"},
     { "path": "packages/classapplier/test"},
     { "path": "packages/highlighter/test"},
-    { "path": "packages/serializer/test"}
+    { "path": "packages/serializer/test"},
+    { "path": "packages/selectionsaverestore/test"}
   ],
   "files": []
 }

@@ -34,6 +34,14 @@
     "type": "git",
     "url": "https://github.com/ohze/rangy.git"
   },
+  "directories": {
+    "src": "src",
+    "lib": "lib"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
   "main": "lib/bundles/index.umd.js",
   "module": "lib/esm5/index.js",
   "es2015": "lib/esm2015/index.js",

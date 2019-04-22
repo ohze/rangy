@@ -1,9 +1,5 @@
 .idea
-dist
 node_modules
-/tscOut/
-/.rpt2_cache/
-/lib/
 /scripts/*.js
 *.js.map
 *.ts.map
@@ -12,8 +8,6 @@ node_modules
 *.test.amd.js
 *.test.iife.js
 *.test.d.ts
-/test/*.d.ts
-!/test/typings.d.ts
 /packages/test-util/*.js*
 /packages/test-util/*.d.ts
 !/packages/test-util/typings.d.ts
