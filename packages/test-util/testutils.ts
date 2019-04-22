@@ -1,4 +1,4 @@
-import * as rangy from "rangy2";
+import * as rangy from "@rangy/core";
 import "core-js/es/map";
 
     export function createNodeTree(levels, copiesPerLevel) {

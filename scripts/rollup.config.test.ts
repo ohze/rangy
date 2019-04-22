@@ -6,14 +6,16 @@
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import * as glob from 'glob';
-import typescript from 'rollup-plugin-typescript2'
 import {packages, packagesDir} from "./util";
 import {resolve, join} from "path";
 import {ModuleFormat, RollupOptions} from "rollup";
+import fs from "fs";
+import sourceMaps from 'rollup-plugin-sourcemaps'
 
-const commonPlugins = [
+const plugins = [
     nodeResolve(),
-    commonjs()
+    commonjs(),
+    sourceMaps(),
 ];
 
 //all rangy modules are external dependencies to test code
@@ -25,16 +27,17 @@ external.forEach(n => Object.assign(globals, {[n]: 'rangy'}));
 
 function configsFor(module: string) {
     const cwd = resolve(packagesDir, module, 'test');
-    const plugins = [...commonPlugins, typescript({
-        tsconfig: resolve(cwd, 'tsconfig.json')
-    })];
+    const tsconfig = resolve(cwd, 'tsconfig.json');
+
+    if (!fs.existsSync(tsconfig)) return [];
+
     function config(f: string, format: ModuleFormat = 'iife'): RollupOptions {
         f = join(cwd, f);
         return {
             input: [f],
             output: {
                 format,
-                file: f.replace(/\.ts$/, format == 'iife'? '.js' : `.${format}.js`),
+                file: f.replace(/\.js$/, `.${format}.js`),
                 name: 'unnamed',
                 globals,
                 sourcemap: true
@@ -44,16 +47,14 @@ function configsFor(module: string) {
         }
     }
     const configs = glob
-        .sync('**/*.ts', {cwd})
-        .filter(f => !f.endsWith('.d.ts'))
+        .sync('**/*.test.js', {cwd})
         .map(f => config(f));
 
     if (module == 'classapplier') {
         // push amdTestExampleConfig
-        configs.push(config("index.test.ts", 'amd'));
+        configs.push(config("index.test.js", 'amd'));
     }
     return configs;
 }
 
-// export default packages.flatMap(configsFor);
-export default configsFor('core');
+export default packages.flatMap(configsFor);

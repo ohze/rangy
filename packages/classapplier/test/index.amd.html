@@ -4,22 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>QUnit Example</title>
-    <script src="../../node_modules/qunit/qunit/qunit.js"></script>
-    <link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css">
-    <script src="../../node_modules/requirejs/require.js"></script>
+    <script src="../../../node_modules/qunit/qunit/qunit.js"></script>
+    <link rel="stylesheet" href="../../../node_modules/qunit/qunit/qunit.css">
+    <script src="../../../node_modules/requirejs/require.js"></script>
 </head>
 <body>
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 <script>
     QUnit.config.autostart = false;
-    var paths = {};
-    var dist = "../../dist/";
     requirejs.config({
-        baseUrl: '../../dist/',
+        baseUrl: '../../',
         paths: {
-            "rangy2": "core/bundles/index.umd",
-            "rangy-classapplier": "classapplier/bundles/index.umd"
+            "@rangy/core": "core/lib/bundles/index.umd",
+            "@rangy/classapplier": "classapplier/lib/bundles/index.umd"
         }
     });
     requirejs(['./index.test.amd.js'], function () {

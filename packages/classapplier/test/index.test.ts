@@ -1,7 +1,7 @@
-import {ClassApplier, createClassApplier} from 'rangy-classapplier';
-import * as rangy from 'rangy2';
+import "@rangy/test-util";
 
-import "../qunit-ex";
+import {ClassApplier, createClassApplier} from '@rangy/classapplier';
+import * as rangy from '@rangy/core';
 
 QUnit.module("Class Applier module tests");
 

@@ -26,3 +26,5 @@ declare module "bowser" {
         }
     }
 }
+
+export * from "./index";

@@ -1,4 +1,5 @@
 import * as rangy from "@rangy/core";
+import "@rangy/test-util/qunit-ex";
 
 QUnit.module("Range");
 

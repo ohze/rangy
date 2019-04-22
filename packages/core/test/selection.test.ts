@@ -1,5 +1,6 @@
 import * as rangy from "@rangy/core";
 import {RangyRangeEx, WrappedSelection} from "@rangy/core";
+import "@rangy/test-util";
 
 var hasNativeGetSelection = "getSelection" in window;
 var hasNativeDomRange = "createRange" in document;

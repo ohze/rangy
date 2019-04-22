@@ -1,5 +1,6 @@
 import * as rangy from "@rangy/core";
 import Bowser from "bowser";
+import "@rangy/test-util/qunit-ex";
 
 const browser = Bowser.getParser(window.navigator.userAgent);
 QUnit.module("Browser feature tests");

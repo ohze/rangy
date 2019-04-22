@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width">
     <title>QUnit Example</title>
     <!-- load rangy2 here in `head` to verify that rangy2 can init without need dom ready -->
-    <script src="../../dist/core/bundles/index.umd.js"></script>
-    <script src="../../dist/serializer/bundles/index.umd.js"></script>
-    <script src="../../node_modules/qunit/qunit/qunit.js"></script>
-    <link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css">
-    <script src="../qunit-ex.js"></script>
+    <script src="../../core/lib/bundles/index.umd.min.js"></script>
+    <script src="../lib/bundles/index.umd.min.js"></script>
+    <script src="../../../node_modules/qunit/qunit/qunit.js"></script>
+    <link rel="stylesheet" href="../../../node_modules/qunit/qunit/qunit.css">
 </head>
 <body>
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
-<script src="index.test.js"></script>
+<script src="index.test.iife.js"></script>
 </body>
 </html>

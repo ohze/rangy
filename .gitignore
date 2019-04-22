@@ -10,11 +10,13 @@ node_modules
 *.tsbuildinfo
 *.test.js
 *.test.amd.js
+*.test.iife.js
 *.test.d.ts
 /test/*.d.ts
 !/test/typings.d.ts
-/packages/core/test/qunit-ex.js*
-/packages/core/test/qunit-ex.d.ts
+/packages/test-util/*.js*
+/packages/test-util/*.d.ts
+!/packages/test-util/typings.d.ts
 /packages/*/lib/
 !/packages/*/lib/types/types.d.ts
 yarn-error.log

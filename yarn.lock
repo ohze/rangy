@@ -1960,7 +1960,7 @@ from2@^2.1.0:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
 
-fs-extra@7.0.1, fs-extra@^7.0.0:
+fs-extra@^7.0.0:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.1.tgz#4f189c44aa123b895f722804f55ea23eadc348e9"
   integrity sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw==
@@ -4098,17 +4098,17 @@ resolve-url@^0.2.1:
   resolved "https://registry.yarnpkg.com/resolve-url/-/resolve-url-0.2.1.tgz#2c637fe77c893afd2a663fe21aa9080068e2052a"
   integrity sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
 
-resolve@1.10.0, resolve@^1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.10.0.tgz#3bdaaeaf45cc07f375656dfd2e54ed0810b101ba"
-  integrity sha512-3sUr9aq5OfSg2S9pNtPA9hL1FVEAjvfOC4leW0SNf/mpnaakz2a9femSd6LqAww2RaFctwyf1lCqnTHuF1rxDg==
-  dependencies:
-    path-parse "^1.0.6"
-
 resolve@1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.9.0.tgz#a14c6fdfa8f92a7df1d996cb7105fa744658ea06"
   integrity sha512-TZNye00tI67lwYvzxCxHGjwTNlUV70io54/Ed4j6PscB8xVfuBJpRenI/o6dVk0cY0PYTY27AgCoGGxRnYuItQ==
+  dependencies:
+    path-parse "^1.0.6"
+
+resolve@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.10.0.tgz#3bdaaeaf45cc07f375656dfd2e54ed0810b101ba"
+  integrity sha512-3sUr9aq5OfSg2S9pNtPA9hL1FVEAjvfOC4leW0SNf/mpnaakz2a9femSd6LqAww2RaFctwyf1lCqnTHuF1rxDg==
   dependencies:
     path-parse "^1.0.6"
 
@@ -4183,16 +4183,6 @@ rollup-plugin-terser@^4.0.4:
     serialize-javascript "^1.6.1"
     terser "^3.14.1"
 
-rollup-plugin-typescript2@^0.20.1:
-  version "0.20.1"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-typescript2/-/rollup-plugin-typescript2-0.20.1.tgz#fb1d411975cd875d24882ea66f5f4fd11d2f2240"
-  integrity sha512-uxA5JQNOfmJ9rsO0yJKTObb1t4nNYUexCg9zxhEKF+NzZwljYWdfgrA06UzA24cOk8fQjGEe7Q5+Vge2vFlnnw==
-  dependencies:
-    fs-extra "7.0.1"
-    resolve "1.10.0"
-    rollup-pluginutils "2.4.1"
-    tslib "1.9.3"
-
 rollup-plugin-uglify@^6.0.2:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/rollup-plugin-uglify/-/rollup-plugin-uglify-6.0.2.tgz#681042cfdf7ea4e514971946344e1a95bc2772fe"
@@ -4202,14 +4192,6 @@ rollup-plugin-uglify@^6.0.2:
     jest-worker "^24.0.0"
     serialize-javascript "^1.6.1"
     uglify-js "^3.4.9"
-
-rollup-pluginutils@2.4.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/rollup-pluginutils/-/rollup-pluginutils-2.4.1.tgz#de43ab54965bbf47843599a7f3adceb723de38db"
-  integrity sha512-wesMQ9/172IJDIW/lYWm0vW0LiKe5Ekjws481R7z9WTRtmO59cqyM/2uUlxvf6yzm/fElFmHUobeQOYz46dZJw==
-  dependencies:
-    estree-walker "^0.6.0"
-    micromatch "^3.1.10"
 
 rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.6.0:
   version "2.6.0"
@@ -4788,7 +4770,7 @@ trim-off-newlines@^1.0.0:
   resolved "https://registry.yarnpkg.com/trim-off-newlines/-/trim-off-newlines-1.0.1.tgz#9f9ba9d9efa8764c387698bcbfeb2c848f11adb3"
   integrity sha1-n5up2e+odkw4dpi8v+sshI8RrbM=
 
-tslib@1.9.3, tslib@^1.9.0, tslib@^1.9.3:
+tslib@^1.9.0, tslib@^1.9.3:
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
   integrity sha512-4krF8scpejhaOgqzBEcGM7yDIEfi0/8+8zDRZhNZZ2kjmHJ4hv3zCbQWxoJGz1iw5U0Jl0nma13xzHXcncMavQ==

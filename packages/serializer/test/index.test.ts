@@ -1,4 +1,5 @@
-import * as rangy from "rangy-serializer";
+import * as rangy from "@rangy/serializer";
+import "@rangy/test-util/qunit-ex";
 
 QUnit.module("Class Applier module tests");
 

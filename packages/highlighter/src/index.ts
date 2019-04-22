@@ -289,7 +289,7 @@ export class Highlighter {
             return intersectingHighlights;
         }
 
-        highlightCharacterRanges(className, charRanges, options) {
+        highlightCharacterRanges(className, charRanges, options?) {
             var i, len, j;
             var highlights = this.highlights;
             var converter = this.converter;
@@ -395,7 +395,7 @@ export class Highlighter {
             return newHighlights;
         }
 
-        highlightRanges(className, ranges, options) {
+        highlightRanges(className, ranges, options?) {
             var selCharRanges = [];
             var converter = this.converter;
 
@@ -424,7 +424,7 @@ export class Highlighter {
             });
         }
 
-        highlightSelection(className, options) {
+        highlightSelection(className, options?) {
             var converter = this.converter;
             var classApplier = className ? this.classAppliers[className] : false;
 
@@ -481,7 +481,7 @@ export class Highlighter {
             return this.getHighlightsInSelection(selection).length > 0;
         }
 
-        serialize(options) {
+        serialize(options?) {
             var highlighter = this;
             var highlights = highlighter.highlights;
             var serializedType, serializedHighlights, convertType, serializationConverter;

@@ -44,15 +44,15 @@
         "clean": "node scripts/clean.js && rimraf .rpt2_cache",
         "tsc:es2018": "tsc -b",
         "watch:tsc_es2018": "tsc -b --watch --pretty",
-        "tsc:es5": "lerna exec --stream --parallel -- ../../node_modules/.bin/tsc --outDir lib/esm5 --target es5",
-        "watch:tsc_es5": "lerna exec --stream --parallel -- ../../node_modules/.bin/tsc --outDir lib/esm5 --target es5 --watch --pretty",
+        "tsc:es5": "lerna exec --no-private --stream --parallel -- ../../node_modules/.bin/tsc -p src/ --outDir lib/esm5 --target es5",
+        "watch:tsc_es5": "lerna exec --no-private --stream --parallel -- ../../node_modules/.bin/tsc -p src/ --outDir lib/esm5 --target es5 --watch --pretty",
         "rollup:src": "rollup -c scripts/rollup.config.js",
         "watch:rollup_src": "FORCE_COLOR=1 rollup -c scripts/rollup.config.js --watch",
         "build:src": "npm-run-all tsc:es2018 tsc:es5 rollup:src",
         "build:test": "rollup -c scripts/rollup.config.test.js",
         "watch:test": "FORCE_COLOR=1 rollup -c scripts/rollup.config.test.js --watch",
         "build": "run-s tsc:scripts build:src build:test",
-        "prerelease": "TODO run-s clean build dist-prepare",
+        "prerelease": "run-s clean build",
         "release": "TODO node scripts/publish.js",
         "watch": "run-p -l watch:*",
         "test": "echo 'pls browse test/*.html for testing'"
@@ -85,7 +85,6 @@
         "rollup-plugin-re": "^1.0.7",
         "rollup-plugin-sourcemaps": "^0.4.2",
         "rollup-plugin-terser": "^4.0.4",
-        "rollup-plugin-typescript2": "^0.20.1",
         "rollup-plugin-uglify": "^6.0.2",
         "typescript": "^3.4.1"
     }

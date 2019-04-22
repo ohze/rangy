@@ -8,7 +8,14 @@
     { "path": "packages/highlighter/src"},
     { "path": "packages/selectionsaverestore/src"},
     { "path": "packages/serializer/src"},
-    { "path": "packages/util/src"}
+    { "path": "packages/util/src"},
+
+    { "path": "packages/test-util"},
+
+    { "path": "packages/core/test"},
+    { "path": "packages/classapplier/test"},
+    { "path": "packages/highlighter/test"},
+    { "path": "packages/serializer/test"}
   ],
   "files": []
 }
