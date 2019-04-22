@@ -1,5 +1,7 @@
-var rangyTestUtils = (function() {
-    function createNodeTree(levels, copiesPerLevel) {
+import * as rangy from "rangy2";
+import "core-js/es/map";
+
+    export function createNodeTree(levels, copiesPerLevel) {
         function createTestNodes(parentNode, limit, copies) {
             if (limit > 0) {
                 var n = parentNode.appendChild(document.createElement("div"));
@@ -19,9 +21,9 @@ var rangyTestUtils = (function() {
     }
 
     var nextIterationId = 1;
-    var nodeIterationIds = new Hashtable();
+    var nodeIterationIds = new Map();
 
-    function iterateNodes(node, func, includeSelf, iterationId) {
+    export function iterateNodes(node, func, includeSelf, iterationId?) {
         if (!iterationId) {
             iterationId = nextIterationId++;
         }
@@ -31,27 +33,29 @@ var rangyTestUtils = (function() {
         if (includeSelf) {
             func(node);
         }
-        nodeIterationIds.put(node, iterationId);
+        nodeIterationIds.set(node, iterationId);
         for (var child = node.firstChild, nextChild; !!child; child = nextChild) {
             nextChild = child.nextSibling;
             iterateNodes(child, func, true, iterationId);
         }
     }
 
-    function RangeInfo() {}
-
-    RangeInfo.prototype = {
-        setStart: function(node, offset) {
+    export class RangeInfo {
+        sc: Node;
+        ec: Node;
+        so: number;
+        eo: number;
+        setStart(node, offset) {
             this.sc = node;
             this.so = offset;
-        },
-        setEnd: function(node, offset) {
+        }
+        setEnd(node, offset) {
             this.ec = node;
             this.eo = offset;
         }
-    };
+    }
 
-    function createRangeInHtml(containerEl, html) {
+    export function createRangeInHtml(containerEl, html) {
         containerEl.innerHTML = html;
         var range = rangy.createRange(), foundStart = false;
         var rangeInfo = new RangeInfo();
@@ -103,7 +107,7 @@ var rangyTestUtils = (function() {
         return range;
     }
 
-    function getSortedClassName(el) {
+    export function getSortedClassName(el) {
         return el.className.split(/\s+/).sort().join(" ");
     }
 
@@ -112,7 +116,7 @@ var rangyTestUtils = (function() {
         return r2.compareBoundaryPoints(r1.START_TO_START, r1);
     }
 
-    function htmlAndRangeToString(containerEl, range) {
+    export function htmlAndRangeToString(containerEl, range) {
         function isElementRangeBoundary(el, offset, range, isStart) {
             var prefix = isStart ? "start" : "end";
             return (el == range[prefix + "Container"] && offset == range[prefix + "Offset"]);
@@ -173,15 +177,3 @@ var rangyTestUtils = (function() {
 
         return getHtml(containerEl, false);
     }
-
-
-    return {
-        createNodeTree: createNodeTree,
-        RangeInfo: RangeInfo,
-        iterateNodes: iterateNodes,
-        createRangeInHtml: createRangeInHtml,
-        getSortedClassName: getSortedClassName,
-        htmlAndRangeToString: htmlAndRangeToString
-    }
-
-})();

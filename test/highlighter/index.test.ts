@@ -1,15 +1,17 @@
-xn.test.suite("Highlighter module tests", function(s) {
-    s.tearDown = function() {
-        document.getElementById("test").innerHTML = "";
-    };
+import * as rangy from "rangy2";
+import "rangy-classapplier";
+import "rangy-highlighter";
+import {createRangeInHtml} from "../testutils"
 
-    s.test("highlightSelection test", function(t) {
+QUnit.module("Highlighter module tests");
+
+    QUnit.test("highlightSelection test", function(t) {
         var applier = rangy.createClassApplier("c1");
         var highlighter = rangy.createHighlighter();
         highlighter.addClassApplier(applier);
 
         var testEl = document.getElementById("test");
-        var range = rangyTestUtils.createRangeInHtml(testEl, 'one [two] three four');
+        var range = createRangeInHtml(testEl, 'one [two] three four');
         range.select();
 
         var highlights = highlighter.highlightSelection("c1");
@@ -22,12 +24,10 @@ xn.test.suite("Highlighter module tests", function(s) {
 
     });
 
-    s.test("Options test (issue 249)", function(t) {
+    QUnit.test("Options test (issue 249)", function(t) {
         var applier = rangy.createClassApplier("c1");
         var highlighter = rangy.createHighlighter();
         highlighter.addClassApplier(applier);
 
         highlighter.highlightSelection("c1", { selection: rangy.getSelection() });
     });
-
-}, false);
