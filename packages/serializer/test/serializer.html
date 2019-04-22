@@ -3,13 +3,9 @@
 <html>
 <head>
     <title>Serializer Test</title>
-    <script type="text/javascript" src="../external/log4javascript.js"></script>
-    <script type="text/javascript" src="../src/core/core.js"></script>
-    <script type="text/javascript" src="../src/core/dom.js"></script>
-    <script type="text/javascript" src="../src/core/domrange.js"></script>
-    <script type="text/javascript" src="../src/core/wrappedrange.js"></script>
-    <script type="text/javascript" src="../src/core/wrappedselection.js"></script>
-    <script type="text/javascript" src="../src/modules/rangy-serializer.js"></script>
+    <!-- load rangy2 here in `head` to verify that rangy2 can init without need dom ready -->
+    <script src="../../core/lib/bundles/index.umd.min.js"></script>
+    <script src="../lib/bundles/index.umd.min.js"></script>
     <script type="text/javascript">
         function restoreSelection() {
             rangy.init();
