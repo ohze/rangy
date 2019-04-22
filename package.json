@@ -1,7 +1,10 @@
 {
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
     "name": "rangy2",
     "description": "A cross-browser DOM range and selection library",
-    "version": "2.1.0",
     "author": {
         "name": "Tim Down",
         "email": "tim@timdown.co.uk",
