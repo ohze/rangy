@@ -198,6 +198,7 @@ export interface RangeP1Ex extends RangeP1 {
     equals(range: AbstractRange): boolean;
     isValid(): boolean;
     inspect(): string;
+    select(this: RangyRangeEx, direction?): void;
 }
 export interface Bookmark {
     start: number;
@@ -661,7 +662,6 @@ export function createDomRangeP1<TBase extends Constructor<RangeP2 & RangeBase>>
         }
 
         // in rangy1, this method is implement in wrappedselection.js
-        // TODO declare in RangeP1Ex
         select(this: RangyRangeEx, direction?): void {
             getSelection( this.getDocument() ).setSingleRange(this, direction);
         }
