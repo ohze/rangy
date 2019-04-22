@@ -1,3 +1,4 @@
+import * as rangy from "rangy2";
 import {DomRange, RangyRange, DOMException, WrappedRange} from "rangy2";
 
 import "../qunit-ex";

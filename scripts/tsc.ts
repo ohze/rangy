@@ -1,6 +1,6 @@
-import {writeFileSync} from "fs";
+import {writeFileSync, copyFileSync} from "fs";
 import {resolve} from "path";
-import {srcDir, modules} from "./util";
+import {srcDir, modules, distDir} from "./util";
 import {spawnSync} from "child_process";
 
 function writeTsConfig(name: string, es: boolean) {
@@ -47,6 +47,10 @@ function main() {
         const success = tsc(es);
         if (!success) break;
     }
+
+    modules.forEach(m => {
+        copyFileSync(resolve(srcDir, m, 'types.d.ts'), resolve(distDir, m, 'types/types.d.ts'));
+    });
 }
 
 // usage: node [options] scripts/tsc.js [tsc arguments]

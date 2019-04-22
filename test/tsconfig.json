@@ -8,16 +8,21 @@
     "stripInternal": true,
     "baseUrl": ".",
     "paths": {
-      "rangy2": ["../src/core"],
-      "rangy-classapplier": ["../src/classapplier"],
-      "rangy-highlighter": ["../src/highlighter"],
-      "rangy-selectionsaverestore": ["../src/selectionsaverestore"],
-      "rangy-serializer": ["../src/serializer"],
-      "rangy-util": ["../src/util"]
+      "rangy2": ["../dist/core"],
+      "rangy-classapplier": ["../dist/classapplier"],
+      "rangy-highlighter": ["../dist/highlighter"],
+      "rangy-selectionsaverestore": ["../dist/selectionsaverestore"],
+      "rangy-serializer": ["../dist/serializer"],
+      "rangy-util": ["../dist/util"]
     }
   },
-  "references": [
-    { "path": "../src" }
-  ]
+//  "references": [
+//    { "path": "../src/core"},
+//    { "path": "../src/classapplier"},
+//    { "path": "../src/highlighter"},
+//    { "path": "../src/selectionsaverestore"},
+//    { "path": "../src/serializer"},
+//    { "path": "../src/util"}
+//  ]
 //  "include": ["./**/*.ts"]
 }

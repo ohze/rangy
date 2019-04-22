@@ -112,3 +112,10 @@ export function selectNodeContents(node) {
 }
 
     // TODO: simple selection save/restore
+
+// // for d.ts typescript export purpose only
+// import * as _rangy from ".";
+// declare global {
+//     type RangyUtilModule = typeof _rangy;
+//     interface Rangy extends RangyUtilModule{}
+// }

@@ -1,3 +1,4 @@
+import * as rangy from "rangy2";
 import {RangyRangeEx, WrappedSelection} from "rangy2";
 
 var hasNativeGetSelection = "getSelection" in window;
@@ -587,6 +588,7 @@ function testSelectionAndRangeCreators(wins, winName,
                 t.assertFalse(sel.refresh(true));
 
                 sel.nativeSelection.selectAllChildren(nodes.div);
+                t.equal(iframeWin.length, 1);
                 t.assertTrue(sel.refresh(true));
                 t.assertFalse(sel.refresh(true));
 
@@ -778,6 +780,13 @@ QUnit.module("getIframeSelection test");
         });
 
 var iframeEl;
+/*
+window.addEventListener("load", function() {
+    // Do it in an iframe
+    iframeEl = document.getElementById("selectors");
+    iframeWin[0] = iframeEl.contentWindow;
+});
+*/
 window.addEventListener("load", function() {
     // Do it in an iframe
     iframeEl = document.body.appendChild(document.createElement("iframe"));

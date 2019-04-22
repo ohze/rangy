@@ -11,6 +11,7 @@
  */
 import * as api from "rangy2";
 import {WrappedRange, WrappedSelection, dom, RangyRangeEx} from "rangy2";
+import {ClassApplier} from "../classapplier";
 const getBody = dom.getBody;
 
 // const module = new Module("Highlighter", ["ClassApplier"]);
@@ -245,7 +246,7 @@ export class Highlighter {
             this.doc = doc || document;
             this.converter = getConverter(type);
         }
-        addClassApplier(classApplier) {
+        addClassApplier(classApplier: ClassApplier) {
             this.classAppliers[classApplier.className] = classApplier;
         }
 

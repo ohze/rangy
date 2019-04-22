@@ -1,3 +1,5 @@
+import * as rangy from "rangy2";
+
 QUnit.module("Range");
 
     function createTestNodes(parentNode, limit, copies) {

@@ -29,9 +29,3 @@ export function shim(win?) {
     shimCreateRange(win);
     shimGetSelection(win);
 }
-
-import * as Rangy from ".";
-export type RangyStatic = typeof Rangy;
-declare global {
-    const rangy: RangyStatic;
-}
