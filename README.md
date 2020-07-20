@@ -1,24 +1,26 @@
 Rangy2
 =====
 
-A cross-browser JavaScript range and selection library.
+A cross-browser JavaScript range and selection library based off of the abondoned project: https://github.com/timdown/rangy.
 
-## Compare to [rangy](https://github.com/timdown/rangy) 1.x
+
+
+## Other improvements over [rangy](https://github.com/timdown/rangy) 1.x
 + migrated to typescript
-    - so, the definition types is always updated
-+ use typescript's module (import / export) instead of the complex `rangy.createModule` logic
-+ remove TextRange & [inactive](https://github.com/timdown/rangy/tree/master/src/modules/inactive) modules
+    - type definitions stay up-to-date
++ uses typescript's module system (import / export) instead of the complex `rangy.createModule` logic
++ removed TextRange & [inactive](https://github.com/timdown/rangy/tree/master/src/modules/inactive) modules
     - if you use those modules, please migrate to rangy2 & create a pull request.
-+ use [rollup](https://rollupjs.org) instead of the
++ uses [rollup](https://rollupjs.org) instead of the
   [old complex manually with text-replacing building logic](https://github.com/timdown/rangy/blob/master/builder/build.js)
-+ don't support too-outdated browser: IE < 9
-    - removed many outdated feature testing logic (for too-outdated browser)
++ doesn't support outdated browsers: IE < 9
+    - removed feature testing logic for outdated browsers
 + migrated testing code to [QUnit](https://qunitjs.com/)
-    - dont use [jest](https://jestjs.io/) because we need test in android/ ios
-+ remove `rangy.init` (& `rangy.addInitListener`)
+    - doesn't use [jest](https://jestjs.io/) because we need test in Android and iOS
++ removed `rangy.init` (& `rangy.addInitListener`)
     - rangy is "initialized" even before DOM ready!
-    - So, many bugs like [326](https://github.com/timdown/rangy/issues/326),
-      [321](https://github.com/timdown/rangy/issues/321) is auto-fixed!
+    - many bugs like [326](https://github.com/timdown/rangy/issues/326),
+      [321](https://github.com/timdown/rangy/issues/321) are auto-fixed!
 
 ## Guide to migrate from rangy 1.x to rangy2
 + removed:
@@ -32,7 +34,7 @@ A cross-browser JavaScript range and selection library.
     - `warn, fail, supported`
     - `RangePrototype, rangePrototype, selectionPrototype`
     - `WrappedTextRange`
-    
+
 + note: to support IE, we bundled the following [core-js](https://www.npmjs.com/package/core-js) modules
   into `dist/*/bundles/index.umd.js` (not bundle into `index.esm.js` & other module types)
 ```javascript
@@ -45,9 +47,16 @@ import "core-js/features/object/assign";
 yarn add rangy2
 ```
 
+## Quick Start
+```typescript
+import { createRangyRange } from 'rangy2';
+
+const range = createRangyRange();
+```
+
 ## Documentation
 
-Documentation is in [the GitHub wiki](https://github.com/timdown/rangy/wiki). 
+Documentation is in [the GitHub wiki](https://github.com/timdown/rangy/wiki).
 
 ## Dev guide
 ```bash
